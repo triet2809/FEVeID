@@ -4,6 +4,8 @@ Website quản lý CLB tổ chức sự kiện: thành viên, ban, sự kiện, 
 
 **Functional Requirements đầy đủ: [docs/requirements.md](docs/requirements.md)** — đọc file này trước khi làm bất kỳ tính năng nào. Đây là bản chính thức; `docs/Context.docx` chỉ là bản gốc để tham khảo. Usecase diagram: `docs/UsecaseDiagram/`.
 
+**Tiến độ & việc tiếp theo: [docs/roadmap.md](docs/roadmap.md)** — đọc khi bắt đầu phiên làm việc mới để biết đang ở giai đoạn nào; đánh dấu `[x]` khi hoàn thành một mục.
+
 ## Tóm tắt nghiệp vụ
 
 Actor (quyền kế thừa: Department Leader, HR, BCN đều có toàn bộ quyền của Member):
