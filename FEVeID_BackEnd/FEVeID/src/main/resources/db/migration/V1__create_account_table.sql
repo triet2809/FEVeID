@@ -1,0 +1,8 @@
+CREATE TABLE accounts (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY ,
+    email varchar(255) NOT NULL UNIQUE ,
+    password_hash varchar(255) NOT NULL ,
+    account_status varchar(30) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
