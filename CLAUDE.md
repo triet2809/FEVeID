@@ -2,12 +2,36 @@
 
 Website quản lý CLB tổ chức sự kiện: thành viên, ban, sự kiện, tuyển CTV, điểm hoạt động & shop đổi quà, danh hiệu, ticket, thông báo.
 
+**Functional Requirements đầy đủ: [docs/requirements.md](docs/requirements.md)** — đọc file này trước khi làm bất kỳ tính năng nào. Đây là bản chính thức; `docs/Context.docx` chỉ là bản gốc để tham khảo. Usecase diagram: `docs/UsecaseDiagram/`.
+
+## Tóm tắt nghiệp vụ
+
+Actor (quyền kế thừa: Department Leader, HR, BCN đều có toàn bộ quyền của Member):
+
+| Actor | Phạm vi chính |
+|---|---|
+| Guest | Xem thông tin CLB, sự kiện công khai, đợt tuyển; ứng tuyển CTV; đăng ký sự kiện công khai (không cần tài khoản) |
+| Member | Profile, Personal Journey, xem/wishlist/đăng ký sự kiện, Event Proposal, Ticket, Notification, điểm & shop |
+| Department Leader (Ban Điều Hành) | Quản lý & đánh giá thành viên trong ban, đề xuất đổi trạng thái/chức vụ cho HR, thông báo/email theo ban |
+| HR | Quản lý toàn bộ thành viên (tạo tài khoản, gán ban/chức vụ, Active/Inactive/Disqualify), tuyển CTV, ticket nhân sự, xác nhận tổ chức/hỗ trợ sự kiện, quản lý điểm & shop |
+| President / BCN | Quản trị CLB, quản lý sự kiện, duyệt Event Proposal, ticket cấp cao, thông báo toàn CLB, danh hiệu, dashboard tổng |
+
+Module (theo mục trong requirements.md): Club info (1, 2.2, 5.1) · Auth & Profile (2.1) · Member/Department (4.1, 3.1) · Journey (2.3) · Event (2.4, 5.2, 6) · Event Proposal (2.5, 5.3) · Recruitment (4.2) · Award (7) · Notification (2.7, 8) · Ticket (2.6, 9) · Dashboard (10) · Điểm & Shop (11) · Đăng ký / Check-in / Thanh toán (12).
+
+State machine trong FR:
+- Event: `DRAFT → OPEN_REGISTRATION → UPCOMING → ONGOING → COMPLETED` (+ `CANCELLED`)
+- Event Proposal: `DRAFT → SUBMITTED → UNDER_REVIEW → APPROVED / REJECTED` (+ `REVISION_REQUIRED`)
+- Ticket: `OPEN → ASSIGNED → IN_PROGRESS → RESOLVED → CLOSED` (+ `REJECTED`)
+- Ứng viên CTV: `APPLIED → SCREENING → INTERVIEW → PASSED / REJECTED`
+- Đăng ký sự kiện: `PENDING_PAYMENT → CONFIRMED → CHECKED_IN` (+ `CANCELLED`, `EXPIRED`, `NO_SHOW`)
+- Đổi quà: `RESERVED → DELIVERED` (+ `CANCELLED`)
+
 ## Cấu trúc repo
 
 ```
 FEVeID_BackEnd/    Spring Boot REST API
 FEVeID_FrontEnd/   React (chưa khởi tạo)
-docs/              Context.docx (Functional Requirements), UsecaseDiagram/
+docs/              requirements.md (FR chính thức), Context.docx (bản gốc), UsecaseDiagram/
 ```
 
 ## Backend
