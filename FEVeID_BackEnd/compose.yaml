@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: feveid-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: FEVeID
+    ports:
+      - "5433:5432"
+    volumes:
+      - feveid-pgdata:/var/lib/postgresql/data      # là thư mục mà Postgres 17 dùng để lưu dữ liệu.Nếu sau này đổi sang 18 thì đường dẫn sẽ khác
+volumes:
+  feveid-pgdata:
