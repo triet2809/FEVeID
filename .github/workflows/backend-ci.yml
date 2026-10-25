@@ -1,0 +1,35 @@
+name: Backend CI
+
+on: # When this run ?
+  push: #When repo is pushed
+    paths: #CI only run when there is change in these folders
+      - 'FEVeID_BackEnd/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'FEVeID_BackEnd/**'
+      - '.github/workflows/backend-ci.yml'
+jobs:
+  builds:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FEVeID_BackEnd #.mvn is located in Backend folder, this command line cd direct in to Backend folder
+
+    steps:
+      - name: Checkout code #this step makes sure virtual machine is empty here (before the test)
+        uses: actions/checkout@v5
+
+      - name: Setup JDK #setup JDK. The virtual machine has Java already but it is not Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+          cache: 'maven'
+      - name: Build and test
+        run: ./mvnw -B verify #Use verify instead of test. It means, it runs through all of tests and packages, so it finally test if the project can build into .jar file or not
+
+          #-B turn off process log, so that CI log is clearly to review
+
+
