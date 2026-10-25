@@ -7,9 +7,6 @@ on:
       - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [ master ]
-    paths:
-      - 'FEVeID_BackEnd/**'
-      - '.github/workflows/backend-ci.yml'
 jobs:
   build:
     runs-on: ubuntu-latest

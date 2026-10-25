@@ -21,7 +21,7 @@ Nguyên tắc: làm theo lát dọc (migration → entity → API → test → m
 - [ ] `departments` + `department_memberships(member, department, position, start_date, end_date)` – Department Leader là chức vụ trong ban
 - [ ] `terms` (kỳ hoạt động, thời gian mở shop)
 - [ ] Module upload file dùng chung (Cloudinary / Cloudflare R2)
-- [ ] Test tích hợp với Testcontainers
+- [x] Test tích hợp với Testcontainers
 - [ ] Khởi tạo frontend React (login + layout theo role)
 
 ## Giai đoạn 1 – Sự kiện miễn phí trọn vòng
