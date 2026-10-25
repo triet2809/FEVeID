@@ -1,0 +1,34 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'FEVeID_BackEnd/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'FEVeID_BackEnd/**'
+      - '.github/workflows/backend-ci.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FEVeID_BackEnd
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+          cache: 'maven'
+      - name: Build and test
+        run: ./mvnw -B verify
+
+
