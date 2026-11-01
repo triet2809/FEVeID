@@ -1,6 +1,7 @@
 package feveid.auth.service.impl;
 
 import feveid.account.entity.Account;
+import feveid.account.enums.AccountStatus;
 import feveid.account.repository.AccountRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -37,10 +38,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 new SimpleGrantedAuthority("ROLE_" + account.getRole().name())
         );
 
-        return new User(
-                account.getEmail(),
-                account.getPasswordHash(),
-                authorities
-        );
+        return User.withUsername(account.getEmail())
+                .password(account.getPasswordHash())
+                .authorities(authorities)
+                .disabled(account.getAccountStatus()== AccountStatus.DISABLED)
+                .accountLocked(account.getAccountStatus()==AccountStatus.LOCKED)
+                .build();
     }
 }
