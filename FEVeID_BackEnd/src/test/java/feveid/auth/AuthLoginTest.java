@@ -115,7 +115,7 @@ public class AuthLoginTest {
     }
     @Test
     void requestWithoutToken_returns401() throws Exception {
-        mockMvc.perform(get("/api/accounts  "))
+        mockMvc.perform(get("/api/accounts"))
                 .andExpect(status().isUnauthorized());
     }
 
