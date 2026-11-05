@@ -6,6 +6,8 @@ Website quản lý CLB tổ chức sự kiện: thành viên, ban, sự kiện, 
 
 **Tiến độ & việc tiếp theo: [docs/roadmap.md](docs/roadmap.md)** — đọc khi bắt đầu phiên làm việc mới để biết đang ở giai đoạn nào; đánh dấu `[x]` khi hoàn thành một mục.
 
+**Bàn giao giữa các phiên/máy: [docs/handoff.md](docs/handoff.md)** — BẮT BUỘC đọc đầu mỗi phiên (cách làm việc mentor mode, bài học đang làm, bước tiếp theo, cài đặt máy) và cập nhật mục "Trạng thái hiện tại" + push trước khi kết thúc phiên. Chủ dự án dùng 2 máy, bộ nhớ của Claude không đồng bộ giữa các máy.
+
 ## Tóm tắt nghiệp vụ
 
 Actor (quyền kế thừa: Department Leader, HR, BCN đều có toàn bộ quyền của Member):
