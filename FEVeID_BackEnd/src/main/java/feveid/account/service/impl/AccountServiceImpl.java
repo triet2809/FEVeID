@@ -6,6 +6,8 @@ import feveid.account.entity.Account;
 import feveid.account.enums.AccountStatus;
 import feveid.account.repository.AccountRepository;
 import feveid.account.service.AccountService;
+import feveid.comon.exception.ConflictException;
+import feveid.comon.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,7 +28,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountResponse createAccount(CreateAccountRequest request) {
         if(accountRepository.existsByEmail(request.email())){
-            throw new RuntimeException("Email already exists");
+            throw new ConflictException("Email đã được sử dụng");
         }
         Account account = Account.builder()
                 .email(request.email())
@@ -51,7 +53,7 @@ public class AccountServiceImpl implements AccountService {
     public AccountResponse getAccountById(Long id) {
 
         Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy tài khoản"));
 
         return new AccountResponse(
                 account.getId(),
