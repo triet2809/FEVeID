@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,18 +29,21 @@ public class AccountController {
     }
 
     @PostMapping("/register")
+    @PreAuthorize("hasRole('HR')")
     @Operation(summary = "Đăng ký tài khoản mới", description = "Tạo một tài khoản mới theo role mặc định là MEMBER")
     public ResponseEntity<AccountResponse> createAccount(@Valid @RequestBody CreateAccountRequest request) {
         AccountResponse response = accountService.createAccount(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('HR','PRESIDENT') or @accountAccess.isSelf(#id,authentication.name)")
     @Operation(summary = "Lấy thông tin tài khoản", description = "Tìm kiếm tài khoản theo ID")
     public ResponseEntity<AccountResponse> getAccountById(@PathVariable Long id) {
         AccountResponse response = accountService.getAccountById(id);
         return ResponseEntity.ok(response);
     }
     @GetMapping
+    @PreAuthorize("hasAnyRole('HR','PRESIDENT')")
     @Operation(summary = "Lấy danh sách tất cả tài khoản", description = "Sử dụng cho HR/Admin/President để lấy danh sách toàn bộ tài khoản")
     public ResponseEntity<List<AccountResponse>> getAllAccounts() {
         List <AccountResponse> response = accountService.getAllAccounts();
