@@ -14,7 +14,7 @@ Nguyên tắc: làm theo lát dọc (migration → entity → API → test → m
 - [x] **Thiếu phân quyền** – `AccountController`: mọi user đã đăng nhập đều tạo được tài khoản (`POST /api/accounts/register`) và xem toàn bộ tài khoản. Cần `@EnableMethodSecurity` + `@PreAuthorize("hasRole('HR')")`; `GET /{id}` chỉ cho chính chủ hoặc HR/BCN.
 - [x] **Exception handler** – `GlobalExceptionHandler` bắt mọi `RuntimeException` → 400 kèm `ex.getMessage()`: sai mật khẩu phải là 401, không tìm thấy là 404, trùng email là 409, lỗi lạ là 500 với message chung (không lộ chi tiết). Tạo exception riêng (`NotFoundException`, `ConflictException`, …).
 - [ ] **HR đặt mật khẩu cho member** – nên gửi link đặt mật khẩu qua email, hoặc bắt đổi mật khẩu ở lần đăng nhập đầu.
-- [ ] Dọn dẹp: ~import thừa `AbstractPersistable_.id` trong `AccountController`; `email` dài 50 ở entity nhưng 255 ở DB; package `comon` → `common`; `SecurityConfig` chuyển ra package config chung.~
+- [x] Dọn dẹp: import thừa `AbstractPersistable_.id` trong `AccountController`; `email` dài 50 ở entity nhưng 255 ở DB; package `comon` → `common`; `SecurityConfig` chuyển ra package config chung.
 
 ### Mô hình dữ liệu nền
 - [ ] Tách `accounts` (đăng nhập) và `members` (hồ sơ CLB, member_status: CTV/ACTIVE/INACTIVE/DISQUALIFIED)

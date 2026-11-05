@@ -1,4 +1,4 @@
-package feveid.comon.exception;
+package feveid.common.exception;
 
 import java.time.LocalDateTime;
 

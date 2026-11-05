@@ -1,4 +1,4 @@
-package feveid.comon.exception;
+package feveid.common.exception;
 // không tìm thấy dữ liệu -> 404
 public class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {
