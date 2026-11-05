@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
-
 @RestController
 @RequestMapping("/api/accounts")
 @Tag(name = "Account Management", description = "Các API quản lý tài khoản thành viên trong FEVeID")

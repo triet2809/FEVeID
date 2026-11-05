@@ -1,4 +1,4 @@
-package feveid.account.config;
+package feveid.common.config;
 
 import feveid.auth.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
