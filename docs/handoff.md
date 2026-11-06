@@ -60,13 +60,19 @@ Lịch dự kiến (khoảng 6h/ngày; đầu mỗi tuần xem lại tốc độ
 
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-06_
+_Cập nhật: 2026-11-06 (cuối phiên trên Mac mini)_
 
-- **Đang làm:** Bài 6, tách `accounts` / `members`. Nhánh `feat/members`.
-- **Đã có:** `V3__create_members_table.sql` (bảng `members`: `account_id` UNIQUE FK, `full_name`, `student_code`, `phone`, `avatar_url`, `member_status` mặc định `CTV`, `joined_at`, timestamps), còn dở câu `INSERT ... SELECT` tạo hồ sơ tạm cho các account đã có.
+- **Đang làm:** Bài 6, tách `accounts` / `members`. Nhánh **`feat/member-entity`** (tạo từ `origin/master` 23aecfb).
+- **Đã có trên `master`:** `V3__create_members_table.sql` đã hoàn chỉnh (kể cả câu `INSERT ... SELECT` tạo hồ sơ tạm, `member_status = 'ACTIVE'` cho các account đã có). V3 lỡ được squash merge vào `master` qua PR #11 dù chỉ là WIP, nhánh `feat/members` đã bị xóa. **Bài học:** PR WIP không merge; việc dở chỉ push lên nhánh.
+- **Đã có trên `feat/member-entity`** (commit `feat: add enum and fix migration`):
+  - Enum `member/enums/MemberStatus.java` (CTV/ACTIVE/INACTIVE/DISQUALIFIED).
+  - `V4___members_update_at.sql`: `ALTER TABLE members RENAME COLUMN update_at TO updated_at;`. Chọn V4 thay vì sửa V3 vì V3 đã nằm trên `master`.
 - **Việc tiếp theo:**
-  - Hoàn thành migration V3. Lưu ý tên cột `update_at` nên đổi thành `updated_at` **trước khi** migration chạy ở bất kỳ đâu ngoài máy local.
-  - Tiếp theo là entity `Member` + enum `MemberStatus` (CTV/ACTIVE/INACTIVE/DISQUALIFIED), repository, tạo member khi HR tạo account, API hồ sơ, test.
+  - Đổi tên file V4 thành `V4__rename_members_update_at.sql`. Tên hiện tại có **3 dấu `_`**: Flyway vẫn chạy nhưng description bị lệch. Phải đổi trước khi merge; nếu V4 đã chạy trên DB local thì `docker compose down -v` rồi bật lại.
+  - Viết entity `member/entity/Member.java` (`@OneToOne(fetch = LAZY)` + `@JoinColumn(name = "account_id")`, `joinedAt` là `LocalDate`, `updatedAt` map cột `updated_at`) và `member/repository/MemberRepository.java` (`findByAccountId`, `existsByStudentCode`). Code mẫu đã đưa trong phiên trên Mac; hai thư mục `entity/`, `repository/` hiện đang trống.
+  - Đoán trước rồi chạy `./mvnw test` (`ddl-auto=validate` sẽ bắt lỗi entity lệch schema). Trên Mac mini **chưa chạy test lần nào**.
+  - Xanh thì mở PR `feat/member-entity` → Claude review → squash merge.
+  - Sau đó là phần logic: tạo `Member` khi HR tạo account (cùng transaction), API hồ sơ, test. Phần này Claude đưa khung + TODO.
 - **Còn treo:** HR đặt mật khẩu cho member (gửi link qua email hoặc bắt đổi mật khẩu lần đầu), xem `roadmap.md`.
 
 ## Cài đặt máy mới
@@ -89,3 +95,6 @@ Riêng laptop Windows:
 Riêng Mac mini:
 - Có sẵn `openssl` để tạo `JWT_SECRET`: `openssl rand -base64 48`.
 - Nếu `./mvnw` báo không có quyền chạy: `chmod +x mvnw` (file đã có mode 100755 trong git).
+- Đã setup: Temurin 25 (arm64, là `java` mặc định), Docker Desktop, `.env`, container `feveid-postgres` (volume `feveid_backend_feveid-pgdata`), Sourcetree, `gh` (đã đăng nhập, protocol https).
+- Repo ở `/Users/mac/FEVeID/FEVeID`. `./mvnw` và `docker compose` phải chạy trong `FEVeID_BackEnd/`; lệnh git chạy ở đâu trong repo cũng được.
+- Máy **không có SSH key** → remote `origin` phải dùng HTTPS (`https://github.com/triet2809/FEVeID.git`). Nếu Sourcetree/git báo `Permission denied (publickey)` thì remote đang là `ssh://...`: đổi lại sang HTTPS.
