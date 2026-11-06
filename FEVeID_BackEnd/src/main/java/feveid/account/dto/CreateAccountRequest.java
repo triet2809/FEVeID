@@ -12,7 +12,13 @@ public record CreateAccountRequest(
 
         @NotBlank
         @Size(min = 6,max = 100)
-        String password
-) {
+        String password,
 
+        @NotBlank
+        @Size(max=100)
+        String fullName,
+
+        @Size(max = 20)
+        String studentCode
+) {
 }
