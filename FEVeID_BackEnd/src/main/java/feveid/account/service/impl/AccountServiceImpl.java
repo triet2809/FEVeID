@@ -8,13 +8,14 @@ import feveid.account.repository.AccountRepository;
 import feveid.account.service.AccountService;
 import feveid.common.exception.ConflictException;
 import feveid.common.exception.NotFoundException;
+import feveid.member.entity.Member;
+import feveid.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-
 
 
 @Service
@@ -22,21 +23,31 @@ import java.util.List;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
+    private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
 
     @Override
+    @Transactional
     public AccountResponse createAccount(CreateAccountRequest request) {
-        if(accountRepository.existsByEmail(request.email())){
+        if (accountRepository.existsByEmail(request.email())) {
             throw new ConflictException("Email đã được sử dụng");
         }
-        Account account = Account.builder()
+        if (request.studentCode() != null
+                && memberRepository.existsByStudentCode(request.studentCode())) {
+            throw new ConflictException("Mã số sinh viên đã được sử dụng");
+        }
+        Account savedAccount = accountRepository.save(Account.builder()
                 .email(request.email())
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .accountStatus(AccountStatus.ACTIVE)
-                .build();
+                .build());
 
-        Account savedAccount = accountRepository.save(account);
+        memberRepository.save(Member.builder()
+                .account(savedAccount)
+                .fullName(request.fullName())
+                .studentCode(request.studentCode())
+                .build());
 
         return new AccountResponse(
                 savedAccount.getId(),
@@ -45,8 +56,6 @@ public class AccountServiceImpl implements AccountService {
                 savedAccount.getRole()
         );
     }
-
-
 
 
     @Override

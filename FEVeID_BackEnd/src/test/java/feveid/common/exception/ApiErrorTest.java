@@ -71,7 +71,7 @@ class ApiErrorTest {
                 .header("Authorization", "Bearer " + hrToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"email": "hr@feveid.test", "password": "Another123"}
+                        {"email": "hr@feveid.test", "password": "Another123", "fullName": "Trung Email"}
                         """))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Email đã được sử dụng"));

@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AccountAuthorizationTest {
     private static final String PASSWORD = "Secret123";
     private static final String NEW_ACCOUNT_JSON = """
-            {"email": "new@feveid.test", "password": "Secret123"}
+            {"email": "new@feveid.test", "password": "Secret123", "fullName": "Nguyen Van A"}
             """;
     @Autowired
     MockMvc mockMvc;
