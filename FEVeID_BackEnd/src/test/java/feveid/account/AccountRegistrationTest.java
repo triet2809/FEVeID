@@ -22,7 +22,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -110,6 +109,25 @@ class AccountRegistrationTest {
         assertThrows(Exception.class, () -> accountService.createAccount(request));
         // Lưu member lỗi, account cũng phải bị rollback
         assertThat(accountRepository.existsByEmail("rollback@feveid.test")).isFalse();
+    }
+
+    @Test
+    void register_blankStudentCode_isStoreAsNull() throws Exception {
+        String body = register("""
+                {"email": "a@feveid.test", "password": "Secret123", "fullName": "Nguyen Van A", "studentCode": ""}
+                """)
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Long accountId = ((Number) JsonPath.read(body, "$.id")).longValue();
+
+        register("""
+                {"email": "b@feveid.test", "password": "Secret123", "fullName": "Nguyen Van B", "studentCode": ""}
+                """)
+                .andExpect(status().isCreated());
+
+
+        Member member = memberRepository.findByAccountId(accountId).orElseThrow();
+        assertThat(member.getStudentCode()).isNull();
     }
 
     private org.springframework.test.web.servlet.ResultActions register(String json) throws Exception {
