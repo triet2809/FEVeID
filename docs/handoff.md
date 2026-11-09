@@ -43,7 +43,7 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 3 | GitHub Actions CI | ✅ |
 | 4 | Branch protection | ✅ |
 | 5 | Sửa lỗi nền móng theo hướng test-first (5.1 login DISABLED/LOCKED, 5.2 exception handler, 5.3 phân quyền, 5.4 dọn dẹp) | ✅ PR #4, #5, #7, #8, #9 |
-| 6 | Tách `accounts` / `members` | ⏳ đang làm |
+| 6 | Tách `accounts` / `members` (6.1 entity, 6.2 tạo Member khi HR tạo account, 6.3 API hồ sơ + HR đổi trạng thái) | ⏳ 6.1 ✅ PR #12, 6.2 ✅ PR #13, 6.3 chưa làm |
 | 7 | `departments` + `department_memberships` | |
 | 8 | `terms` | |
 | 9 | Khởi tạo React (login + layout theo role); trước đó học nhanh React/TS khoảng 10h | |
@@ -58,21 +58,33 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 
 Lịch dự kiến (khoảng 6h/ngày; đầu mỗi tuần xem lại tốc độ): tuần 1 (1–7/11) xong Bài 5–7 · tuần 2 Bài 8 + React cơ bản + Bài 9 · tuần 3 Bài 10–12 · tuần 4 Bài 13–14 → MVP khoảng **28/11/2026** · tháng 12 Bài 15–22.
 
+Xem lại tốc độ ngày 09/11: tuần 1 mới xong Bài 5 và khoảng 70% Bài 6 (chậm khoảng 1,5 bài). Kế hoạch mới: tuần 2 xong Bài 6 + Bài 7, tuần 3 Bài 8 + React; MVP có thể lùi về khoảng 1–2/12.
+
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-06 (cuối phiên trên Mac mini)_
+_Cập nhật: 2026-11-09 (trên laptop Windows)_
 
-- **Đang làm:** Bài 6, tách `accounts` / `members`. Nhánh **`feat/member-entity`** (tạo từ `origin/master` 23aecfb).
-- **Đã có trên `master`:** `V3__create_members_table.sql` đã hoàn chỉnh (kể cả câu `INSERT ... SELECT` tạo hồ sơ tạm, `member_status = 'ACTIVE'` cho các account đã có). V3 lỡ được squash merge vào `master` qua PR #11 dù chỉ là WIP, nhánh `feat/members` đã bị xóa. **Bài học:** PR WIP không merge; việc dở chỉ push lên nhánh.
-- **Đã có trên `feat/member-entity`** (commit `feat: add enum and fix migration`):
-  - Enum `member/enums/MemberStatus.java` (CTV/ACTIVE/INACTIVE/DISQUALIFIED).
-  - `V4___members_update_at.sql`: `ALTER TABLE members RENAME COLUMN update_at TO updated_at;`. Chọn V4 thay vì sửa V3 vì V3 đã nằm trên `master`.
-- **Việc tiếp theo:**
-  - Đổi tên file V4 thành `V4__rename_members_update_at.sql`. Tên hiện tại có **3 dấu `_`**: Flyway vẫn chạy nhưng description bị lệch. Phải đổi trước khi merge; nếu V4 đã chạy trên DB local thì `docker compose down -v` rồi bật lại.
-  - Viết entity `member/entity/Member.java` (`@OneToOne(fetch = LAZY)` + `@JoinColumn(name = "account_id")`, `joinedAt` là `LocalDate`, `updatedAt` map cột `updated_at`) và `member/repository/MemberRepository.java` (`findByAccountId`, `existsByStudentCode`). Code mẫu đã đưa trong phiên trên Mac; hai thư mục `entity/`, `repository/` hiện đang trống.
-  - Đoán trước rồi chạy `./mvnw test` (`ddl-auto=validate` sẽ bắt lỗi entity lệch schema). Trên Mac mini **chưa chạy test lần nào**.
-  - Xanh thì mở PR `feat/member-entity` → Claude review → squash merge.
-  - Sau đó là phần logic: tạo `Member` khi HR tạo account (cùng transaction), API hồ sơ, test. Phần này Claude đưa khung + TODO.
+- **Đã xong Bài 6.1 và 6.2** (đã nằm trên `master`):
+  - PR #12: entity `Member` (`@OneToOne(fetch = LAZY)` với `Account`, `MemberStatus` dùng `@Enumerated(STRING)`, `@Builder.Default` cho `memberStatus = CTV` và `joinedAt = LocalDate.now()`, `@CreationTimestamp`/`@UpdateTimestamp`), `MemberRepository` (`findByAccountId`, `existsByStudentCode`), `V4__rename_members_update_at.sql`, `MemberRepositoryTest` (3 test).
+  - PR #13: `POST /api/accounts/register` nhận thêm `fullName` (bắt buộc) và `studentCode` (không bắt buộc), tạo `Member` trong cùng `@Transactional`; trùng mã sinh viên → 409 "Mã số sinh viên đã được sử dụng". `AccountRegistrationTest` có 4 test, trong đó có test chứng minh rollback (gọi thẳng service với `fullName` 101 ký tự).
+  - Tổng cộng **26 test** xanh.
+- **Đang làm:** PR nhỏ `feat/swagger-jwt-dev-seed`, làm trên laptop Windows, **chưa push**:
+  - `common/config/OpenApiConfig.java`: khai báo security scheme `bearerAuth` để Swagger có nút Authorize.
+  - `common/config/DevDataSeeder.java`: `@Profile("dev")`, `CommandLineRunner` tạo account HR + `Member` nếu chưa có email đó; email/mật khẩu lấy từ env `DEV_HR_EMAIL`, `DEV_HR_PASSWORD` (không ghi cứng trong code vì repo public).
+  - `.env.example` đã thêm `DEV_HR_EMAIL=`, `DEV_HR_PASSWORD=` (để trống).
+  - Kiểm tra bằng Swagger: login HR → Authorize → `POST /api/accounts/register` → 201; trùng `studentCode` → 409. CI xanh thì tự merge (PR cấu hình).
+- **Việc tiếp theo: Bài 6.3, API hồ sơ** (Claude đưa khung + TODO, test-first):
+  - `GET /api/members/me`, `PATCH /api/members/me` (member chỉ sửa được `phone`, `avatarUrl`; FR 2.1).
+  - `GET /api/members`, `GET /api/members/{id}` (HR/PRESIDENT).
+  - `PATCH /api/members/{id}/status` (HR: ACTIVE/INACTIVE/DISQUALIFIED; FR 4.1).
+  - Xong 6.3 thì tick mục "Tách `accounts` và `members`" trong `roadmap.md`, chuyển sang Bài 7.
+  - Để sang bài sau: gán ban/chức vụ (Bài 7), lịch sử đổi trạng thái (cần bảng riêng), đổi mật khẩu, tìm kiếm nâng cao.
+- **Bài học trong phiên này:**
+  - Đọc log dài: tìm dòng `Caused by:` sâu nhất của lỗi **đầu tiên**; các lỗi sau thường chỉ là `ApplicationContext failure threshold exceeded`. Với Lombok thì đọc dòng WARNING ngay phía trên ERROR.
+  - Class test phải có tên kết thúc bằng `Test`/`Tests` thì Surefire (và CI) mới chạy. Đã gặp: `AccountRegistration` bị bỏ qua mà CI vẫn xanh.
+  - Cả class test cùng đỏ một lỗi → xem `@BeforeEach` trước (đã gặp: gõ sai email khi lấy token).
+  - Không đặt `@Transactional` lên class test có test rollback, nếu không test đó luôn xanh.
+  - Vẫn còn auto-import nhầm package (`org.testcontainers.utility.TestcontainersConfiguration`) và merge PR `feat/` trước khi Claude review.
 - **Còn treo:** HR đặt mật khẩu cho member (gửi link qua email hoặc bắt đổi mật khẩu lần đầu), xem `roadmap.md`.
 
 ## Cài đặt máy mới
@@ -82,7 +94,7 @@ Chung:
 - Docker (Docker Desktop trên Mac, chạy được image arm64 của `postgres:17` và Testcontainers).
 - Tạo `FEVeID_BackEnd/.env` từ `.env.example` (`DB_PASSWORD`, `JWT_SECRET`). **Không commit file này.** Giá trị `DB_PASSWORD` phải khớp giữa `.env` (compose dùng) và Run Configuration của IntelliJ.
 - Postgres: `docker compose up -d` trong `FEVeID_BackEnd/`, map cổng **5433** (`application.properties` trỏ tới `localhost:5433`).
-- Run Configuration của app: env `DB_PASSWORD`, `JWT_SECRET`; VM option `-Duser.timezone=Asia/Ho_Chi_Minh`.
+- Run Configuration của app: env `DB_PASSWORD`, `JWT_SECRET`, và cho profile dev: `SPRING_PROFILES_ACTIVE=dev`, `DEV_HR_EMAIL`, `DEV_HR_PASSWORD`; VM option `-Duser.timezone=Asia/Ho_Chi_Minh`. Spring Boot **không tự đọc** `.env` (chỉ `docker compose` đọc); muốn dùng chung một chỗ thì bật plugin EnvFile trong Run Configuration và trỏ tới `FEVeID_BackEnd/.env`.
 - Test: `./mvnw test` (Testcontainers tự bật Postgres; cần Docker đang chạy).
 
 Riêng laptop Windows:
@@ -91,6 +103,9 @@ Riêng laptop Windows:
 - Postgres 17 cài trên Windows chiếm cổng 5432, nên mới dùng 5433.
 - TZ mặc định của JVM là `Asia/Saigon`, image Postgres trên Debian 13 không nhận → luôn đặt `-Duser.timezone=Asia/Ho_Chi_Minh` (surefire đã đặt sẵn cho test).
 - Chưa cài `gh`; kiểm tra GitHub qua `curl https://api.github.com/repos/triet2809/FEVeID/...` (repo public).
+- Chạy Maven ở PowerShell: đứng trong `FEVeID_BackEnd/` rồi `$env:JAVA_HOME="C:\Users\Admin\.jdks\temurin-25.0.3"; .\mvnw.cmd test` (đứng ở gốc repo sẽ báo `./mvnw not recognized`).
+- Docker Desktop hay tự tắt (đã gặp 3 lần ngày 06–07/11) → test lỗi `Previous attempts to find a Docker environment failed`. Chạy `docker ps` trước khi test; nên bật Settings → General → *Start Docker Desktop when you sign in*. Máy còn có các container `nexus-*` của dự án khác chiếm cổng 5432.
+- IntelliJ IDEA Ultimate 2026.2: có JPA Buddy (Ctrl+Shift+A → "Entities from DB"), plugin EnvFile đã cài.
 
 Riêng Mac mini:
 - Có sẵn `openssl` để tạo `JWT_SECRET`: `openssl rand -base64 48`.
