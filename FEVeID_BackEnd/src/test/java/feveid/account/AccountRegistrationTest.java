@@ -112,7 +112,7 @@ class AccountRegistrationTest {
     }
 
     @Test
-    void register_blankStudentCode_isStoreAsNull() throws Exception {
+    void register_blankStudentCode_isStoredAsNull() throws Exception {
         String body = register("""
                 {"email": "a@feveid.test", "password": "Secret123", "fullName": "Nguyen Van A", "studentCode": ""}
                 """)
