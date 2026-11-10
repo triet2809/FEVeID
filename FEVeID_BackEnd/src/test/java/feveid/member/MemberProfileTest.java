@@ -101,7 +101,7 @@ public class MemberProfileTest extends ApiTestSupport{
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"phone": "0123456780123456789"}
+                        {"phone": "012345678900123456789"}
                         """))
                 .andExpect(status().isBadRequest());
     }
