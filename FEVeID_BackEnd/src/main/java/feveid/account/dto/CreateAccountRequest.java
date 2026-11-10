@@ -11,14 +11,23 @@ public record CreateAccountRequest(
         String email,
 
         @NotBlank
-        @Size(min = 6,max = 100)
+        @Size(min = 6, max = 100)
         String password,
 
         @NotBlank
-        @Size(max=100)
+        @Size(max = 100)
         String fullName,
 
         @Size(max = 20)
         String studentCode
 ) {
+    public CreateAccountRequest {
+        if (studentCode != null) {
+            studentCode = studentCode.trim();
+            if (studentCode.isEmpty()) {
+                studentCode = null;
+            }
+        }
+
+    }
 }
