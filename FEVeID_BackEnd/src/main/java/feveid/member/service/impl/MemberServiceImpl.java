@@ -13,7 +13,6 @@ import feveid.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -64,8 +63,7 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional(readOnly = true)
     public MemberResponse getMemberById(Long id){
-        return MemberResponse.from(memberRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy thành viên")));
+        return MemberResponse.from(findById(id));
     }
 
     @Override
@@ -84,7 +82,7 @@ public class MemberServiceImpl implements MemberService {
             member.getAccount().setAccountStatus(AccountStatus.DISABLED);
         }
         //Không cần save(): member và account đều đang được quản lý trong transaction (dirty checking)
-        return MemberResponse.from(memberRepository.save(member));
+        return MemberResponse.from(member);
     }
 
     private Member findById(Long id) {

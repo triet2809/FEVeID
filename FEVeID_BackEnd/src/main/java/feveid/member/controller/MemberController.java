@@ -50,7 +50,7 @@ public class MemberController {
     }
 
     @PatchMapping ("/{id}/status")
-    @PreAuthorize("hasAnyRole('HR')")
+    @PreAuthorize("hasRole('HR')")
     @Operation(summary = "Đổi trạng thái thành viên",
     description = "CTV/ACTIVE/INACTIVE/DISQUALIFIED theo luật chuyển trạng thái")
     public ResponseEntity<MemberResponse> changeStatus(@PathVariable Long id, @Valid @RequestBody ChangeMemberStatusRequest request) {
