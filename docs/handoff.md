@@ -43,8 +43,8 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 3 | GitHub Actions CI | ✅ |
 | 4 | Branch protection | ✅ |
 | 5 | Sửa lỗi nền móng theo hướng test-first (5.1 login DISABLED/LOCKED, 5.2 exception handler, 5.3 phân quyền, 5.4 dọn dẹp) | ✅ PR #4, #5, #7, #8, #9 |
-| 6 | Tách `accounts` / `members` (6.1 entity, 6.2 tạo Member khi HR tạo account, 6.3 API hồ sơ + HR đổi trạng thái) | ⏳ 6.1 ✅ PR #12, 6.2 ✅ PR #13, 6.3 chưa làm |
-| 7 | `departments` + `department_memberships` | |
+| 6 | Tách `accounts` / `members` (6.1 entity, 6.2 tạo Member khi HR tạo account, 6.3 API hồ sơ + HR đổi trạng thái) | ✅ PR #12, #13, #15, #18, #20 |
+| 7 | `departments` + `department_memberships` (7.1 CRUD ban, 7.2 gán/chuyển ban + chức vụ, 7.3 phân quyền Trưởng ban) | ⏳ 7.1 đang làm |
 | 8 | `terms` | |
 | 9 | Khởi tạo React (login + layout theo role); trước đó học nhanh React/TS khoảng 10h | |
 | 10 | CRUD sự kiện + upload ảnh | |
@@ -60,32 +60,32 @@ Lịch dự kiến (khoảng 6h/ngày; đầu mỗi tuần xem lại tốc độ
 
 Xem lại tốc độ ngày 09/11: tuần 1 mới xong Bài 5 và khoảng 70% Bài 6 (chậm khoảng 1,5 bài). Kế hoạch mới: tuần 2 xong Bài 6 + Bài 7, tuần 3 Bài 8 + React; MVP có thể lùi về khoảng 1–2/12.
 
+Ngày 11/11: xong Bài 6, bắt đầu Bài 7, đúng kế hoạch mới.
+
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-09 (trên laptop Windows)_
+_Cập nhật: 2026-11-11 (trên laptop Windows)_
 
-- **Đã xong Bài 6.1 và 6.2** (đã nằm trên `master`):
-  - PR #12: entity `Member` (`@OneToOne(fetch = LAZY)` với `Account`, `MemberStatus` dùng `@Enumerated(STRING)`, `@Builder.Default` cho `memberStatus = CTV` và `joinedAt = LocalDate.now()`, `@CreationTimestamp`/`@UpdateTimestamp`), `MemberRepository` (`findByAccountId`, `existsByStudentCode`), `V4__rename_members_update_at.sql`, `MemberRepositoryTest` (3 test).
-  - PR #13: `POST /api/accounts/register` nhận thêm `fullName` (bắt buộc) và `studentCode` (không bắt buộc), tạo `Member` trong cùng `@Transactional`; trùng mã sinh viên → 409 "Mã số sinh viên đã được sử dụng". `AccountRegistrationTest` có 4 test, trong đó có test chứng minh rollback (gọi thẳng service với `fullName` 101 ký tự).
-  - Tổng cộng **26 test** xanh.
-- **Đang làm:** PR nhỏ `feat/swagger-jwt-dev-seed`, làm trên laptop Windows, **chưa push**:
-  - `common/config/OpenApiConfig.java`: khai báo security scheme `bearerAuth` để Swagger có nút Authorize.
-  - `common/config/DevDataSeeder.java`: `@Profile("dev")`, `CommandLineRunner` tạo account HR + `Member` nếu chưa có email đó; email/mật khẩu lấy từ env `DEV_HR_EMAIL`, `DEV_HR_PASSWORD` (không ghi cứng trong code vì repo public).
-  - `.env.example` đã thêm `DEV_HR_EMAIL=`, `DEV_HR_PASSWORD=` (để trống).
-  - Kiểm tra bằng Swagger: login HR → Authorize → `POST /api/accounts/register` → 201; trùng `studentCode` → 409. CI xanh thì tự merge (PR cấu hình).
-- **Việc tiếp theo: Bài 6.3, API hồ sơ** (Claude đưa khung + TODO, test-first):
-  - `GET /api/members/me`, `PATCH /api/members/me` (member chỉ sửa được `phone`, `avatarUrl`; FR 2.1).
-  - `GET /api/members`, `GET /api/members/{id}` (HR/PRESIDENT).
-  - `PATCH /api/members/{id}/status` (HR: ACTIVE/INACTIVE/DISQUALIFIED; FR 4.1).
-  - Xong 6.3 thì tick mục "Tách `accounts` và `members`" trong `roadmap.md`, chuyển sang Bài 7.
-  - Để sang bài sau: gán ban/chức vụ (Bài 7), lịch sử đổi trạng thái (cần bảng riêng), đổi mật khẩu, tìm kiếm nâng cao.
+- **Đã xong Bài 6** (đã nằm trên `master`):
+  - PR #15: Swagger có nút Authorize (`bearerAuth`), `DevDataSeeder` (`@Profile("dev")`, tạo HR từ env `DEV_HR_EMAIL`/`DEV_HR_PASSWORD`).
+  - PR #18: `ApiTestSupport` (lớp cha cho test API: `cleanDatabase`, `createMember`, `tokenOf`); `studentCode` rỗng → `null`; `GET/PATCH /api/members/me` (member chỉ sửa `phone` ≤ 20, `avatarUrl` ≤ 500; field lạ bị Jackson bỏ qua; PATCH: `null` = giữ nguyên).
+  - PR #20: `GET /api/members?status=` + `GET /api/members/{id}` (HR, PRESIDENT; `@EntityGraph(attributePaths = "account")` chống N+1), `PATCH /api/members/{id}/status` (HR). Luật chuyển trạng thái nằm trong `MemberStatus.canTransitionTo` (CTV/INACTIVE → ACTIVE, DISQUALIFIED; ACTIVE → INACTIVE, DISQUALIFIED; DISQUALIFIED là trạng thái cuối; không ai về CTV); sai luật → 409. Disqualify → account `DISABLED` (login và token cũ đều 401). `MemberStatusTest` dùng `@ParameterizedTest` + `@CsvSource` (16 case).
+- **Đang làm: Bài 7.1, CRUD ban** (nhánh `feat/departments`): migration `V5__create_departments_table.sql`, entity/repository/DTO/service/controller `department`, `GET /api/departments` + `GET /api/departments/{id}` công khai (FR 1, guest xem các ban → thêm vào `permitAll` trong `SecurityConfig`, chỉ method GET), `POST`/`PUT` chỉ PRESIDENT (FR 5.1); trùng tên ban → 409. Chưa làm xóa ban.
+- **Thiết kế Bài 7 đã chốt** (Claude đề xuất 11/11):
+  - `department_memberships(member_id, department_id, position, start_date, end_date)`: `end_date IS NULL` = đang giữ. Chuyển ban / đổi chức vụ = đóng dòng cũ (`end_date = hôm nay`) + mở dòng mới, nhờ đó có sẵn lịch sử cho Personal Journey (FR 2.3).
+  - Mỗi member chỉ ở **một ban** tại một thời điểm và mỗi ban chỉ có **một Trưởng ban** đang giữ: dùng partial unique index (`... WHERE end_date IS NULL`).
+  - Chức vụ: `LEADER` (Trưởng ban), `VICE_LEADER` (Phó ban), `MEMBER`. Cần hỏi chủ dự án CLB thật có những chức vụ nào trước khi làm 7.2.
+  - 7.2: HR gán/chuyển ban, đổi chức vụ (FR 4.1); `GET /api/departments/{id}/members`. 7.3: bean `@departmentAccess` cho Trưởng ban xem thành viên ban mình (FR 3.1).
 - **Bài học trong phiên này:**
-  - Đọc log dài: tìm dòng `Caused by:` sâu nhất của lỗi **đầu tiên**; các lỗi sau thường chỉ là `ApplicationContext failure threshold exceeded`. Với Lombok thì đọc dòng WARNING ngay phía trên ERROR.
-  - Class test phải có tên kết thúc bằng `Test`/`Tests` thì Surefire (và CI) mới chạy. Đã gặp: `AccountRegistration` bị bỏ qua mà CI vẫn xanh.
-  - Cả class test cùng đỏ một lỗi → xem `@BeforeEach` trước (đã gặp: gõ sai email khi lấy token).
-  - Không đặt `@Transactional` lên class test có test rollback, nếu không test đó luôn xanh.
-  - Vẫn còn auto-import nhầm package (`org.testcontainers.utility.TestcontainersConfiguration`) và merge PR `feat/` trước khi Claude review.
-- **Còn treo:** HR đặt mật khẩu cho member (gửi link qua email hoặc bắt đổi mật khẩu lần đầu), xem `roadmap.md`.
+  - `$.length()` là đếm số phần tử; `$[0]` là phần tử đầu tiên (đếm từ 0). Số trong assert phải giải thích được từ `@BeforeEach` (HR cũng là một member).
+  - Record thiếu tên thành phần (`MemberStatus` thay vì `MemberStatus status`) → IntelliJ gợi ý "Create method" sai hướng. Hỏi "vì sao thiếu" trước khi bấm bóng đèn.
+  - Spring Data sinh query từ **tên method**, tham số gán theo vị trí (tên tham số sai vẫn chạy, nhưng gây hiểu nhầm). Gõ sai tên thuộc tính → app không start.
+  - `Long` thay vì `long` cho id (null = chưa lưu, tránh NPE khi unboxing; so sánh `Long` bằng `equals`).
+  - Vẫn còn: auto-import nhầm (`PathVariable` trong service), code trên `master` quên tạo nhánh, PR #19 bị Close nhầm, tiêu đề squash không theo dạng `feat: ...` (PR #18, #20). Gợi ý: bật Optimize imports on the fly; nhìn tên nhánh trước khi code.
+- **Còn treo:**
+  - HR đặt mật khẩu cho member (gửi link qua email hoặc bắt đổi mật khẩu lần đầu), xem `roadmap.md`.
+  - HR có thể tự Disqualify chính mình hoặc PRESIDENT → cân nhắc chặn ở một PR `fix/`.
+  - Lịch sử đổi trạng thái thành viên (FR 4.1) cần bảng riêng; tìm kiếm theo tên (`Specification`); phân trang danh sách.
 
 ## Cài đặt máy mới
 

@@ -17,7 +17,7 @@ Nguyên tắc: làm theo lát dọc (migration → entity → API → test → m
 - [x] Dọn dẹp: import thừa `AbstractPersistable_.id` trong `AccountController`; `email` dài 50 ở entity nhưng 255 ở DB; package `comon` → `common`; `SecurityConfig` chuyển ra package config chung.
 
 ### Mô hình dữ liệu nền
-- [ ] Tách `accounts` (đăng nhập) và `members` (hồ sơ CLB, member_status: CTV/ACTIVE/INACTIVE/DISQUALIFIED)
+- [x] Tách `accounts` (đăng nhập) và `members` (hồ sơ CLB, member_status: CTV/ACTIVE/INACTIVE/DISQUALIFIED)
 - [ ] `departments` + `department_memberships(member, department, position, start_date, end_date)` – Department Leader là chức vụ trong ban
 - [ ] `terms` (kỳ hoạt động, thời gian mở shop)
 - [ ] Module upload file dùng chung (Cloudinary / Cloudflare R2)
