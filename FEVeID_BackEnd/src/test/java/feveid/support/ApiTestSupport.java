@@ -5,6 +5,7 @@ import feveid.TestcontainersConfiguration;
 import feveid.account.entity.Account;
 import feveid.account.enums.AccountRole;
 import feveid.account.repository.AccountRepository;
+import feveid.department.repository.DepartmentRepository;
 import feveid.member.entity.Member;
 import feveid.member.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,11 @@ public abstract class ApiTestSupport {
     protected MemberRepository memberRepository;
     @Autowired
     protected PasswordEncoder passwordEncoder;
+    @Autowired
+    protected DepartmentRepository departmentRepository;
 
     protected void cleanDatabase() {
+        departmentRepository.deleteAll();
         memberRepository.deleteAll();
         accountRepository.deleteAll();
     }
