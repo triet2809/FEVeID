@@ -3,6 +3,7 @@ package feveid.member.service.impl;
 import feveid.account.enums.AccountStatus;
 import feveid.common.exception.ConflictException;
 import feveid.common.exception.NotFoundException;
+import feveid.department.repository.DepartmentMembershipRepository;
 import feveid.member.dto.ChangeMemberStatusRequest;
 import feveid.member.dto.MemberResponse;
 import feveid.member.dto.UpdateMyProfileRequest;
@@ -14,12 +15,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
     private final MemberRepository memberRepository;
+    private final DepartmentMembershipRepository membershipRepository;
 
 
     @Override
@@ -80,6 +83,9 @@ public class MemberServiceImpl implements MemberService {
     // Disqualify = rời CLB -> Khóa đăng nhập luôn (login chặn DISABLE)
         if (target == MemberStatus.DISQUALIFIED){
             member.getAccount().setAccountStatus(AccountStatus.DISABLED);
+            //...và rút khỏi ban đang ở (đóng dòng, không xóa: giữ lịch sử cho personal journey)
+            membershipRepository.findByMemberIdAndEndDateIsNull(id)
+                    .ifPresent(m -> m.setEndDate(LocalDate.now()));
         }
         //Không cần save(): member và account đều đang được quản lý trong transaction (dirty checking)
         return MemberResponse.from(member);

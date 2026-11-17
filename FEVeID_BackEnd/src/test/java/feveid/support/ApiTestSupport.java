@@ -5,6 +5,8 @@ import feveid.TestcontainersConfiguration;
 import feveid.account.entity.Account;
 import feveid.account.enums.AccountRole;
 import feveid.account.repository.AccountRepository;
+import feveid.department.entity.Department;
+import feveid.department.repository.DepartmentMembershipRepository;
 import feveid.department.repository.DepartmentRepository;
 import feveid.member.entity.Member;
 import feveid.member.repository.MemberRepository;
@@ -36,8 +38,11 @@ public abstract class ApiTestSupport {
     protected PasswordEncoder passwordEncoder;
     @Autowired
     protected DepartmentRepository departmentRepository;
+    @Autowired
+    protected DepartmentMembershipRepository membershipRepository;
 
     protected void cleanDatabase() {
+        membershipRepository.deleteAll();   // bảng con (có khóa ngoại tới members và departments) → xóa trước
         departmentRepository.deleteAll();
         memberRepository.deleteAll();
         accountRepository.deleteAll();
@@ -63,5 +68,8 @@ public abstract class ApiTestSupport {
                                 """.formatted(email, PASSWORD)))
                 .andReturn().getResponse().getContentAsString();
         return JsonPath.read(body, "$.accessToken");
+    }
+    protected Department createDepartment(String name) {
+        return departmentRepository.save(Department.builder().name(name).build());
     }
 }
