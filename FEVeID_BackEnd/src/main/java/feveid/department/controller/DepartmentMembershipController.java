@@ -36,7 +36,7 @@ public class DepartmentMembershipController {
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/api/departments/{departmentId}/members")
-    @PreAuthorize("hasAnyRole('HR', 'PRESIDENT')")
+    @PreAuthorize("hasAnyRole('HR', 'PRESIDENT') or @departmentAccess.isManagerOf(#departmentId, authentication.name)")
     @Operation(summary = "Thành viên hiện tại của ban", description = "Trưởng ban -> Phó ban -> Thành viên, rồi theo tên")
     public ResponseEntity<List<DepartmentMemberResponse>> getCurrentMembers(@PathVariable Long departmentId){
         return ResponseEntity.ok(membershipService.getCurrentMembers(departmentId));

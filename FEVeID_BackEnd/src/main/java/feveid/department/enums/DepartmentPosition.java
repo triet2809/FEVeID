@@ -4,5 +4,9 @@ package feveid.department.enums;
 public enum DepartmentPosition {
     LEADER,
     VICE_LEADER,
-    MEMBER
+    MEMBER;
+
+    public boolean isManager() {
+        return this == LEADER || this == VICE_LEADER;
+    }
 }
