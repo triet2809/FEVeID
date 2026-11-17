@@ -43,7 +43,7 @@ public class MemberController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('HR', 'PRESIDENT')")
+    @PreAuthorize("hasAnyRole('HR', 'PRESIDENT') or @departmentAccess.isManagerOfMember(#id, authentication.name)")
     @Operation(summary = "Xem hồ sơ thành viên")
     public ResponseEntity<MemberResponse> getMemberById(@PathVariable Long id){
         return ResponseEntity.ok(memberService.getMemberById(id));

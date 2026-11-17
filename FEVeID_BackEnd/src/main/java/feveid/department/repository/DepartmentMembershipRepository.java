@@ -17,4 +17,6 @@ public interface DepartmentMembershipRepository extends JpaRepository<Department
     //Lấy luôn member + account trong 1 query (chống N+1)
     @EntityGraph(attributePaths = {"member", "member.account"})
     List<DepartmentMembership> findByDepartmentIdAndEndDateIsNull(Long departmentId);
+    // Ban hiện tại của người đang đăng nhập (authentication.name = email)
+    Optional<DepartmentMembership> findByMemberAccountEmailAndEndDateIsNull(String email);
 }
