@@ -10,6 +10,7 @@ import feveid.department.repository.DepartmentMembershipRepository;
 import feveid.department.repository.DepartmentRepository;
 import feveid.member.entity.Member;
 import feveid.member.repository.MemberRepository;
+import feveid.term.repository.TermRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -40,12 +41,15 @@ public abstract class ApiTestSupport {
     protected DepartmentRepository departmentRepository;
     @Autowired
     protected DepartmentMembershipRepository membershipRepository;
+    @Autowired
+    protected TermRepository termRepository;
 
     protected void cleanDatabase() {
         membershipRepository.deleteAll();   // bảng con (có khóa ngoại tới members và departments) → xóa trước
         departmentRepository.deleteAll();
         memberRepository.deleteAll();
         accountRepository.deleteAll();
+        termRepository.deleteAll(); // chưa có khóa ngoại nên thứ tự nào cũng được (sau này sổ cái điểm sẽ trỏ tới)
     }
 
     protected Member createMember(String email, AccountRole role, String fullName) {
