@@ -45,7 +45,8 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 5 | Sửa lỗi nền móng theo hướng test-first (5.1 login DISABLED/LOCKED, 5.2 exception handler, 5.3 phân quyền, 5.4 dọn dẹp) | ✅ PR #4, #5, #7, #8, #9 |
 | 6 | Tách `accounts` / `members` (6.1 entity, 6.2 tạo Member khi HR tạo account, 6.3 API hồ sơ + HR đổi trạng thái) | ✅ PR #12, #13, #15, #18, #20 |
 | 7 | `departments` + `department_memberships` (7.1 CRUD ban, 7.2 gán/chuyển ban + chức vụ, 7.3 phân quyền Trưởng ban) | ✅ PR #22, #23, #24 |
-| 8 | `terms` (8.1 CRUD + mở/đóng gian hàng, 8.2 kỳ hiện tại + `Clock` + lọc gian hàng đang mở) | ⏳ 8.1 ✅ PR #25, 8.2 đang làm |
+| 8 | `terms` (8.1 CRUD + mở/đóng gian hàng, 8.2 kỳ hiện tại + `Clock` + lọc gian hàng đang mở) | ✅ PR #25, #26 |
+| 8.5 | Học nhanh TypeScript + React (khoảng 10h, làm trong thư mục playground ngoài repo) | ⏳ đang làm |
 | 9 | Khởi tạo React (login + layout theo role); trước đó học nhanh React/TS khoảng 10h | |
 | 10 | CRUD sự kiện + upload ảnh | |
 | 11 | Trang sự kiện công khai + đăng ký | |
@@ -62,11 +63,11 @@ Xem lại tốc độ ngày 09/11: tuần 1 mới xong Bài 5 và khoảng 70% B
 
 Ngày 11/11: xong Bài 6, bắt đầu Bài 7, đúng kế hoạch mới.
 
-Ngày 19/11: xong Bài 7 và 8.1, đúng kế hoạch mới (tuần 3 = Bài 8 + React). Sau 8.2 là học nhanh React/TS rồi Bài 9.
+Ngày 19/11: xong Bài 7 và Bài 8, đúng kế hoạch mới (tuần 3 = Bài 8 + React). Tiếp theo: học nhanh TS/React (8.5) rồi Bài 9.
 
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-19 (trên laptop Windows)_
+_Cập nhật: 2026-11-19 tối (trên laptop Windows)_
 
 - **Đã xong Bài 7** (đã nằm trên `master`):
   - PR #22: CRUD ban. `GET /api/departments`, `GET /api/departments/{id}` công khai (`permitAll` chỉ cho method GET); `POST`/`PUT` chỉ PRESIDENT; tên ban unique không phân biệt hoa thường (`LOWER(name)`) → trùng thì 409. Chưa làm xóa ban.
@@ -74,14 +75,15 @@ _Cập nhật: 2026-11-19 (trên laptop Windows)_
   - PR #24: bean `@departmentAccess` (`isManagerOf`, `isManagerOfMember`). Trưởng ban **và Phó ban** xem được danh sách và hồ sơ thành viên ban mình; ban khác, ban không tồn tại, cựu Trưởng ban → 403. Gán ban vẫn chỉ HR. Luật "chức vụ nào là quản lý" nằm ở `DepartmentPosition.isManager()`.
 - **Bài 8.1 xong** (PR #25): bảng `terms` (V7) gồm `name`, `start_date`, `end_date`, `shop_open`. Ràng buộc `EXCLUDE USING gist (daterange(start_date, end_date, '[]') WITH &&)` chặn 2 kỳ chồng nhau ở DB; service kiểm tra trước để trả 409. `@AssertTrue isDateRangeValid()` trong `TermRequest` kiểm tra chéo ngày. API: `GET /api/terms`, `GET /api/terms/{id}` (đã đăng nhập), `POST`/`PUT` (HR, PRESIDENT), `PATCH /api/terms/{id}/shop` body `{"open": true}` (idempotent).
 - **Nghiệp vụ đã chốt (18/11)**, đã ghi vào `requirements.md` mục 11.2 và `CLAUDE.md`: kỳ = kỳ học Fall/Spring/Summer, điểm tính riêng; mỗi kỳ một gian hàng, HR mở/đóng thủ công; một buổi tổng kết có thể mở cùng lúc gian hàng của nhiều kỳ. Có buổi tổng kết kiêm **kết nạp thành viên mới** (CTV → ACTIVE hàng loạt) → nhớ khi làm tuyển CTV.
-- **Đang làm: Bài 8.2** (nhánh `feat/current-term`): bean `Clock` (Asia/Ho_Chi_Minh) để code phụ thuộc thời gian test được; `GET /api/terms/current` (kỳ chứa ngày hôm nay, không có → 404); `GET /api/terms?shopOpen=true|false`.
+- **Bài 8.2 xong** (PR #26): bean `Clock` trong `common/config/TimeConfig` (`CLUB_ZONE = Asia/Ho_Chi_Minh`); service lấy ngày bằng `LocalDate.now(clock)`, test thay bằng `@MockitoBean Clock` (`CurrentTermTest`, có case 00:30 ngày 01/01 giờ VN để bắt lỗi dùng nhầm UTC). `@Query` JPQL đầu tiên: `TermRepository.findContaining(date)`. `GET /api/terms/current` (không có kỳ → 404), `GET /api/terms?shopOpen=true|false`.
+- **Đang làm: Bài 8.5, học nhanh TypeScript + React** trước Bài 9. Code học nằm ở thư mục playground **ngoài repo** (laptop: `D:eact-playground`), không commit vào FEVeID. Node 24 + npm 11 đã có trên laptop. Lộ trình: (A) TypeScript cho người biết Java, (B) React core với Vite, gọi API backend qua Vite proxy, (C) React Router + TanStack Query + Ant Design.
 - **Bài học trong các phiên 17–19/11:**
   - `@PreAuthorize` gọi bean (`@departmentAccess.isManagerOf(#departmentId, authentication.name)`): tên `#...` phải trùng tên tham số Java. Trả 403 (không phải 404) cho ban không tồn tại để người ngoài không dò được.
   - Self-invocation: gọi method trong cùng class thì không đi qua proxy → `@Transactional`/`@Cacheable` của method được gọi bị bỏ qua.
   - `@NotBlank` chỉ dùng cho `String`; gắn vào `LocalDate` → `UnexpectedTypeException` (500). Jackson đổi `""`/`"   "` thành `null` cho ngày, nên `@NotNull` là đủ; sai định dạng → `HttpMessageNotReadableException` → 400.
   - Validation chéo nhiều field: `@AssertTrue` trên method `isXxx()`, nhớ trả `true` khi field null để `@NotNull` tự báo lỗi.
   - `Boolean` (không phải `boolean`) cho field bắt buộc trong request: thiếu field → `null` → 400, thay vì ngầm là `false`.
-  - Vẫn còn: **tạo nhánh từ nhánh cũ** (PR #25, phải `git reset --soft origin/master`) → luôn chuột phải `origin/master` → Branch; **`AM` trong `git status`** = đã stage bản cũ rồi sửa tiếp → `git add -A` trước khi commit; chưa bật format khi lưu (code trên `master` còn `if(`, `@Valid  @RequestBody`, `@NotNull` thừa cạnh `@NotBlank` ở `TermRequest.name` → dọn trong PR 8.2); hay bỏ qua bước dự đoán / câu hỏi kiểm tra (3 câu của 8.1 chưa trả lời: bản không `AndIdNot`, đảo thứ tự tham số, bỏ kiểm tra null trong `isDateRangeValid`).
+  - Vẫn còn: **tạo nhánh từ nhánh cũ** (PR #25, phải `git reset --soft origin/master`) → luôn chuột phải `origin/master` → Branch; **`AM` trong `git status`** = đã stage bản cũ rồi sửa tiếp → `git add -A` trước khi commit; chưa bật format khi lưu (phải nhắc 3 lần mới format; đã dọn xong trong PR #26) → bật *Actions on Save*; nhận review nhiều mục thì làm checklist kẻo sót (PR #26 sót `getTerms()` ở interface → lỗi biên dịch, IntelliJ báo "related problems" ở `TimeConfig`; xem lỗi thật ở Problems → Project Errors); hay bỏ qua bước dự đoán / câu hỏi kiểm tra. Đã trả lời 3 câu của 8.1: câu 2 sai (test bị chặn ở `@Valid` thì không kiểm tra được repository; Spring Data gán tham số theo vị trí), câu 3 chưa phân biệt checked/unchecked exception và chưa biết NPE trong validator → `ValidationException` → 500. 2 câu của 8.2 (UTC, bỏ endpoint `/current`) chưa trả lời.
 - **Còn treo:**
   - HR đặt mật khẩu cho member (gửi link qua email hoặc bắt đổi mật khẩu lần đầu), xem `roadmap.md`.
   - HR có thể tự Disqualify chính mình hoặc PRESIDENT → cân nhắc chặn ở một PR `fix/`.

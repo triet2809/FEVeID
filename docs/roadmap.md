@@ -19,7 +19,7 @@ Nguyên tắc: làm theo lát dọc (migration → entity → API → test → m
 ### Mô hình dữ liệu nền
 - [x] Tách `accounts` (đăng nhập) và `members` (hồ sơ CLB, member_status: CTV/ACTIVE/INACTIVE/DISQUALIFIED)
 - [x] `departments` + `department_memberships(member, department, position, start_date, end_date)` – Department Leader là chức vụ trong ban
-- [ ] `terms` (kỳ học Fall/Spring/Summer, gian hàng đổi quà mở/đóng thủ công) – CRUD xong (PR #25), còn kỳ hiện tại + lọc gian hàng đang mở
+- [x] `terms` (kỳ học Fall/Spring/Summer, gian hàng đổi quà mở/đóng thủ công, kỳ hiện tại theo `Clock`)
 - [ ] Module upload file dùng chung (Cloudinary / Cloudflare R2)
 - [x] Test tích hợp với Testcontainers
 - [ ] Khởi tạo frontend React (login + layout theo role)
