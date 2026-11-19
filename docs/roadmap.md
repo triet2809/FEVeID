@@ -18,14 +18,17 @@ Nguyên tắc: làm theo lát dọc (migration → entity → API → test → m
 
 ### Mô hình dữ liệu nền
 - [x] Tách `accounts` (đăng nhập) và `members` (hồ sơ CLB, member_status: CTV/ACTIVE/INACTIVE/DISQUALIFIED)
-- [ ] `departments` + `department_memberships(member, department, position, start_date, end_date)` – Department Leader là chức vụ trong ban
-- [ ] `terms` (kỳ hoạt động, thời gian mở shop)
+- [x] `departments` + `department_memberships(member, department, position, start_date, end_date)` – Department Leader là chức vụ trong ban
+- [x] `terms` (kỳ học Fall/Spring/Summer, gian hàng đổi quà mở/đóng thủ công, kỳ hiện tại theo `Clock`)
 - [ ] Module upload file dùng chung (Cloudinary / Cloudflare R2)
 - [x] Test tích hợp với Testcontainers
 - [ ] Khởi tạo frontend React (login + layout theo role)
 
 ## Giai đoạn 1 – Sự kiện miễn phí trọn vòng
 CRUD sự kiện, trang sự kiện công khai, đăng ký (nội bộ + khách), check-in QR, Finalize sự kiện (HR chốt tổ chức/hỗ trợ), sổ cái điểm.
+
+## Sau MVP – Landing page khu công khai
+Giới thiệu CLB, các ban, sự kiện nổi bật, tuyển CTV, gian hàng quà; nhiều hình ảnh + hiệu ứng khi cuộn (Motion). Khu nội bộ giữ Ant Design gọn.
 
 ## Giai đoạn 2 – Shop & tổng kết kỳ
 Shop đổi quà, phát quà ở buổi tổng kết, Personal Journey, Dashboard cơ bản, thông báo trong app + email.

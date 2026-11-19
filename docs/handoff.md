@@ -44,14 +44,16 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 4 | Branch protection | ✅ |
 | 5 | Sửa lỗi nền móng theo hướng test-first (5.1 login DISABLED/LOCKED, 5.2 exception handler, 5.3 phân quyền, 5.4 dọn dẹp) | ✅ PR #4, #5, #7, #8, #9 |
 | 6 | Tách `accounts` / `members` (6.1 entity, 6.2 tạo Member khi HR tạo account, 6.3 API hồ sơ + HR đổi trạng thái) | ✅ PR #12, #13, #15, #18, #20 |
-| 7 | `departments` + `department_memberships` (7.1 CRUD ban, 7.2 gán/chuyển ban + chức vụ, 7.3 phân quyền Trưởng ban) | ⏳ 7.1 đang làm |
-| 8 | `terms` | |
+| 7 | `departments` + `department_memberships` (7.1 CRUD ban, 7.2 gán/chuyển ban + chức vụ, 7.3 phân quyền Trưởng ban) | ✅ PR #22, #23, #24 |
+| 8 | `terms` (8.1 CRUD + mở/đóng gian hàng, 8.2 kỳ hiện tại + `Clock` + lọc gian hàng đang mở) | ✅ PR #25, #26 |
+| 8.5 | Học nhanh TypeScript + React (khoảng 10h, làm trong thư mục playground ngoài repo) | ⏳ đang làm |
 | 9 | Khởi tạo React (login + layout theo role); trước đó học nhanh React/TS khoảng 10h | |
 | 10 | CRUD sự kiện + upload ảnh | |
 | 11 | Trang sự kiện công khai + đăng ký | |
 | 12 | Check-in + sổ cái điểm | |
 | 13 | Finalize sự kiện | |
 | 14 | Deploy (đây là mốc MVP) | |
+| 14.5 | Landing page khu công khai + hiệu ứng (Motion), theo thiết kế chủ dự án tự làm | |
 | 15–17 | Shop / Journey, Dashboard, Thông báo | |
 | 18 | VietQR | |
 | 19–22 | Event Proposal, tuyển CTV, Awards, Ticket | |
@@ -62,30 +64,35 @@ Xem lại tốc độ ngày 09/11: tuần 1 mới xong Bài 5 và khoảng 70% B
 
 Ngày 11/11: xong Bài 6, bắt đầu Bài 7, đúng kế hoạch mới.
 
+Ngày 19/11: xong Bài 7 và Bài 8, đúng kế hoạch mới (tuần 3 = Bài 8 + React). Tiếp theo: học nhanh TS/React (8.5) rồi Bài 9.
+
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-11 (trên laptop Windows)_
+_Cập nhật: 2026-11-19 tối (trên laptop Windows)_
 
-- **Đã xong Bài 6** (đã nằm trên `master`):
-  - PR #15: Swagger có nút Authorize (`bearerAuth`), `DevDataSeeder` (`@Profile("dev")`, tạo HR từ env `DEV_HR_EMAIL`/`DEV_HR_PASSWORD`).
-  - PR #18: `ApiTestSupport` (lớp cha cho test API: `cleanDatabase`, `createMember`, `tokenOf`); `studentCode` rỗng → `null`; `GET/PATCH /api/members/me` (member chỉ sửa `phone` ≤ 20, `avatarUrl` ≤ 500; field lạ bị Jackson bỏ qua; PATCH: `null` = giữ nguyên).
-  - PR #20: `GET /api/members?status=` + `GET /api/members/{id}` (HR, PRESIDENT; `@EntityGraph(attributePaths = "account")` chống N+1), `PATCH /api/members/{id}/status` (HR). Luật chuyển trạng thái nằm trong `MemberStatus.canTransitionTo` (CTV/INACTIVE → ACTIVE, DISQUALIFIED; ACTIVE → INACTIVE, DISQUALIFIED; DISQUALIFIED là trạng thái cuối; không ai về CTV); sai luật → 409. Disqualify → account `DISABLED` (login và token cũ đều 401). `MemberStatusTest` dùng `@ParameterizedTest` + `@CsvSource` (16 case).
-- **Đang làm: Bài 7.1, CRUD ban** (nhánh `feat/departments`): migration `V5__create_departments_table.sql`, entity/repository/DTO/service/controller `department`, `GET /api/departments` + `GET /api/departments/{id}` công khai (FR 1, guest xem các ban → thêm vào `permitAll` trong `SecurityConfig`, chỉ method GET), `POST`/`PUT` chỉ PRESIDENT (FR 5.1); trùng tên ban → 409. Chưa làm xóa ban.
-- **Thiết kế Bài 7 đã chốt** (Claude đề xuất 11/11):
-  - `department_memberships(member_id, department_id, position, start_date, end_date)`: `end_date IS NULL` = đang giữ. Chuyển ban / đổi chức vụ = đóng dòng cũ (`end_date = hôm nay`) + mở dòng mới, nhờ đó có sẵn lịch sử cho Personal Journey (FR 2.3).
-  - Mỗi member chỉ ở **một ban** tại một thời điểm và mỗi ban chỉ có **một Trưởng ban** đang giữ: dùng partial unique index (`... WHERE end_date IS NULL`).
-  - Chức vụ: `LEADER` (Trưởng ban), `VICE_LEADER` (Phó ban), `MEMBER`. Cần hỏi chủ dự án CLB thật có những chức vụ nào trước khi làm 7.2.
-  - 7.2: HR gán/chuyển ban, đổi chức vụ (FR 4.1); `GET /api/departments/{id}/members`. 7.3: bean `@departmentAccess` cho Trưởng ban xem thành viên ban mình (FR 3.1).
-- **Bài học trong phiên này:**
-  - `$.length()` là đếm số phần tử; `$[0]` là phần tử đầu tiên (đếm từ 0). Số trong assert phải giải thích được từ `@BeforeEach` (HR cũng là một member).
-  - Record thiếu tên thành phần (`MemberStatus` thay vì `MemberStatus status`) → IntelliJ gợi ý "Create method" sai hướng. Hỏi "vì sao thiếu" trước khi bấm bóng đèn.
-  - Spring Data sinh query từ **tên method**, tham số gán theo vị trí (tên tham số sai vẫn chạy, nhưng gây hiểu nhầm). Gõ sai tên thuộc tính → app không start.
-  - `Long` thay vì `long` cho id (null = chưa lưu, tránh NPE khi unboxing; so sánh `Long` bằng `equals`).
-  - Vẫn còn: auto-import nhầm (`PathVariable` trong service), code trên `master` quên tạo nhánh, PR #19 bị Close nhầm, tiêu đề squash không theo dạng `feat: ...` (PR #18, #20). Gợi ý: bật Optimize imports on the fly; nhìn tên nhánh trước khi code.
+- **Đã xong Bài 7** (đã nằm trên `master`):
+  - PR #22: CRUD ban. `GET /api/departments`, `GET /api/departments/{id}` công khai (`permitAll` chỉ cho method GET); `POST`/`PUT` chỉ PRESIDENT; tên ban unique không phân biệt hoa thường (`LOWER(name)`) → trùng thì 409. Chưa làm xóa ban.
+  - PR #23: `department_memberships` (V6). `end_date IS NULL` = đang giữ; chuyển ban / đổi chức vụ = đóng dòng cũ + mở dòng mới (có lịch sử cho Personal Journey). Partial unique index: mỗi member một ban, mỗi ban một `LEADER`. `PUT /api/members/{id}/department` (HR, idempotent), `DELETE` (rút khỏi ban), `GET /api/departments/{id}/members` (Trưởng → Phó → Thành viên, rồi theo tên). Member bị Disqualify → đóng membership.
+  - PR #24: bean `@departmentAccess` (`isManagerOf`, `isManagerOfMember`). Trưởng ban **và Phó ban** xem được danh sách và hồ sơ thành viên ban mình; ban khác, ban không tồn tại, cựu Trưởng ban → 403. Gán ban vẫn chỉ HR. Luật "chức vụ nào là quản lý" nằm ở `DepartmentPosition.isManager()`.
+- **Bài 8.1 xong** (PR #25): bảng `terms` (V7) gồm `name`, `start_date`, `end_date`, `shop_open`. Ràng buộc `EXCLUDE USING gist (daterange(start_date, end_date, '[]') WITH &&)` chặn 2 kỳ chồng nhau ở DB; service kiểm tra trước để trả 409. `@AssertTrue isDateRangeValid()` trong `TermRequest` kiểm tra chéo ngày. API: `GET /api/terms`, `GET /api/terms/{id}` (đã đăng nhập), `POST`/`PUT` (HR, PRESIDENT), `PATCH /api/terms/{id}/shop` body `{"open": true}` (idempotent).
+- **Nghiệp vụ đã chốt (18/11)**, đã ghi vào `requirements.md` mục 11.2 và `CLAUDE.md`: kỳ = kỳ học Fall/Spring/Summer, điểm tính riêng; mỗi kỳ một gian hàng, HR mở/đóng thủ công; một buổi tổng kết có thể mở cùng lúc gian hàng của nhiều kỳ. Có buổi tổng kết kiêm **kết nạp thành viên mới** (CTV → ACTIVE hàng loạt) → nhớ khi làm tuyển CTV.
+- **Bài 8.2 xong** (PR #26): bean `Clock` trong `common/config/TimeConfig` (`CLUB_ZONE = Asia/Ho_Chi_Minh`); service lấy ngày bằng `LocalDate.now(clock)`, test thay bằng `@MockitoBean Clock` (`CurrentTermTest`, có case 00:30 ngày 01/01 giờ VN để bắt lỗi dùng nhầm UTC). `@Query` JPQL đầu tiên: `TermRepository.findContaining(date)`. `GET /api/terms/current` (không có kỳ → 404), `GET /api/terms?shopOpen=true|false`.
+- **Thiết kế frontend đã chốt (20/11)**, ghi ở `CLAUDE.md` mục Frontend: nhiều hiệu ứng chỉ ở khu công khai (tham khảo game.kyucdisan.com: Next.js + video nền + GSAP, font Alegreya + Be Vietnam Pro), khu nội bộ dùng Ant Design gọn; làm hiệu ứng sau MVP (Bài 14.5); chủ dự án tự thiết kế, CLB đã có tài nguyên.
+- **Đang làm: Bài 8.5, học nhanh TypeScript + React** trước Bài 9. Code học nằm ở thư mục playground **ngoài repo** (laptop: `D:
+eact-playground`), không commit vào FEVeID. Node 24 + npm 11 đã có trên laptop. Tiến độ: `src/learn/01-types.ts` xong (type, union, `find`/`filter`/`toSorted`/`map`, narrowing, `?.`/`??`; đã hiểu kiểu chỉ kiểm tra lúc biên dịch, lúc chạy bị xóa → cần Zod cho dữ liệu API). Chủ dự án **hoàn toàn mới với JS/frontend** → code mẫu cần comment giải thích kỹ, so sánh với Java. Tiếp theo: `02-fetch.ts` (login + `fetchTerms` + `Result<T>`, cần backend profile dev). Lộ trình: (A) TypeScript cho người biết Java, (B) React core với Vite, gọi API backend qua Vite proxy, (C) React Router + TanStack Query + Ant Design.
+- **Bài học trong các phiên 17–19/11:**
+  - `@PreAuthorize` gọi bean (`@departmentAccess.isManagerOf(#departmentId, authentication.name)`): tên `#...` phải trùng tên tham số Java. Trả 403 (không phải 404) cho ban không tồn tại để người ngoài không dò được.
+  - Self-invocation: gọi method trong cùng class thì không đi qua proxy → `@Transactional`/`@Cacheable` của method được gọi bị bỏ qua.
+  - `@NotBlank` chỉ dùng cho `String`; gắn vào `LocalDate` → `UnexpectedTypeException` (500). Jackson đổi `""`/`"   "` thành `null` cho ngày, nên `@NotNull` là đủ; sai định dạng → `HttpMessageNotReadableException` → 400.
+  - Validation chéo nhiều field: `@AssertTrue` trên method `isXxx()`, nhớ trả `true` khi field null để `@NotNull` tự báo lỗi.
+  - `Boolean` (không phải `boolean`) cho field bắt buộc trong request: thiếu field → `null` → 400, thay vì ngầm là `false`.
+  - Vẫn còn: **tạo nhánh từ nhánh cũ** (PR #25, phải `git reset --soft origin/master`) → luôn chuột phải `origin/master` → Branch; **`AM` trong `git status`** = đã stage bản cũ rồi sửa tiếp → `git add -A` trước khi commit; chưa bật format khi lưu (phải nhắc 3 lần mới format; đã dọn xong trong PR #26) → bật *Actions on Save*; nhận review nhiều mục thì làm checklist kẻo sót (PR #26 sót `getTerms()` ở interface → lỗi biên dịch, IntelliJ báo "related problems" ở `TimeConfig`; xem lỗi thật ở Problems → Project Errors); hay bỏ qua bước dự đoán / câu hỏi kiểm tra. Đã trả lời 3 câu của 8.1: câu 2 sai (test bị chặn ở `@Valid` thì không kiểm tra được repository; Spring Data gán tham số theo vị trí), câu 3 chưa phân biệt checked/unchecked exception và chưa biết NPE trong validator → `ValidationException` → 500. 2 câu của 8.2 (UTC, bỏ endpoint `/current`) chưa trả lời.
 - **Còn treo:**
   - HR đặt mật khẩu cho member (gửi link qua email hoặc bắt đổi mật khẩu lần đầu), xem `roadmap.md`.
   - HR có thể tự Disqualify chính mình hoặc PRESIDENT → cân nhắc chặn ở một PR `fix/`.
   - Lịch sử đổi trạng thái thành viên (FR 4.1) cần bảng riêng; tìm kiếm theo tên (`Specification`); phân trang danh sách.
+  - Hai request tạo kỳ chồng nhau cùng lúc → DB chặn nhưng trả 500 (`DataIntegrityViolationException` chưa có handler) → xử lý khi làm shop.
+  - Khoảng trống giữa 2 kỳ: sự kiện rơi vào khoảng trống không thuộc kỳ nào → quyết định ở Bài 12 (sổ cái điểm).
 
 ## Cài đặt máy mới
 
