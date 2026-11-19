@@ -59,6 +59,8 @@ React + TypeScript + Vite, Ant Design, TanStack Query, React Router, React Hook 
 - Sự kiện có phí: thanh toán qua VietQR, hệ thống tự xác nhận đăng ký khi nhận được tiền. Sự kiện miễn phí: đăng ký trực tiếp.
 - Check-in (để cộng điểm tham gia) tách biệt với đăng ký/thanh toán.
 - Role toàn CLB (`MEMBER`, `HR`, `PRESIDENT`) khác với chức vụ trong ban (Department Leader là chức vụ trong ban).
+- Chức vụ trong ban: `LEADER`, `VICE_LEADER`, `MEMBER`. Trưởng ban và Phó ban (Ban Điều Hành) có cùng quyền xem thành viên ban mình (`DepartmentPosition.isManager()`).
+- Kỳ (`terms`) = kỳ học Fall/Spring/Summer, không chồng nhau. Mỗi kỳ có một gian hàng đổi quà riêng (`shop_open`, HR mở/đóng thủ công); một buổi tổng kết có thể mở cùng lúc gian hàng của nhiều kỳ.
 
 ## Quy ước Git
 
