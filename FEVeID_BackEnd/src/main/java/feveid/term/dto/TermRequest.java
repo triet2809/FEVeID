@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public record TermRequest(
-        @NotNull
         @Size(max = 100)
         @NotBlank
         String name,
@@ -24,11 +23,12 @@ public record TermRequest(
             name = name.trim();
         }
     }
+
     // Kiểm tra chéo 2 field: @NotNull chỉ nhìn từng field riêng lẻ
     @AssertTrue(message = "Ngày kết thúc phải sau ngày bắt đầu")
     public boolean isDateRangeValid() {
         //Thiếu ngày thì để @NotNull báo lỗi, ở đây bỏ qua (tránh NullPointerException)
-        if(startDate == null || endDate == null) {
+        if (startDate == null || endDate == null) {
             return true;
         }
         return endDate.isAfter(startDate);

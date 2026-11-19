@@ -23,9 +23,9 @@ public class TermController {
     private final TermService termService;
 
     @GetMapping
-    @Operation(summary = "Danh sách kỳ", description = "Kỳ mới nhất trước")
-    public ResponseEntity<List<TermResponse>> getTerms() {
-        return ResponseEntity.ok(termService.getTerms());
+    @Operation(summary = "Danh sách kỳ", description = "Kỳ mới nhất trước. shopOpen=true: các gian hàng đang mở")
+    public ResponseEntity<List<TermResponse>> getTerms(@RequestParam(required = false) Boolean shopOpen) {
+        return ResponseEntity.ok(termService.getTerms(shopOpen));
     }
 
     @GetMapping("/{id}")
@@ -53,6 +53,12 @@ public class TermController {
     @Operation(summary = "Mở/đóng gian hàng đổi quà của kỳ")
     public ResponseEntity<TermResponse> changeShopStatus(@PathVariable Long id, @Valid @RequestBody ShopStatusRequest request){
         return ResponseEntity.ok(termService.changeShopStatus(id, request));
+    }
+
+    @GetMapping("/current")
+    @Operation(summary = "Kỳ hiện tại", description = "Kỳ chứa ngày hôm nay (giờ Việt Nam). Không có kỳ nào -> 404")
+    public ResponseEntity<TermResponse> getCurrentTerm() {
+        return ResponseEntity.ok(termService.getCurrentTerm());
     }
 
 }
