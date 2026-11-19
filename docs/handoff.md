@@ -53,6 +53,7 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 12 | Check-in + sổ cái điểm | |
 | 13 | Finalize sự kiện | |
 | 14 | Deploy (đây là mốc MVP) | |
+| 14.5 | Landing page khu công khai + hiệu ứng (Motion), theo thiết kế chủ dự án tự làm | |
 | 15–17 | Shop / Journey, Dashboard, Thông báo | |
 | 18 | VietQR | |
 | 19–22 | Event Proposal, tuyển CTV, Awards, Ticket | |
@@ -76,7 +77,9 @@ _Cập nhật: 2026-11-19 tối (trên laptop Windows)_
 - **Bài 8.1 xong** (PR #25): bảng `terms` (V7) gồm `name`, `start_date`, `end_date`, `shop_open`. Ràng buộc `EXCLUDE USING gist (daterange(start_date, end_date, '[]') WITH &&)` chặn 2 kỳ chồng nhau ở DB; service kiểm tra trước để trả 409. `@AssertTrue isDateRangeValid()` trong `TermRequest` kiểm tra chéo ngày. API: `GET /api/terms`, `GET /api/terms/{id}` (đã đăng nhập), `POST`/`PUT` (HR, PRESIDENT), `PATCH /api/terms/{id}/shop` body `{"open": true}` (idempotent).
 - **Nghiệp vụ đã chốt (18/11)**, đã ghi vào `requirements.md` mục 11.2 và `CLAUDE.md`: kỳ = kỳ học Fall/Spring/Summer, điểm tính riêng; mỗi kỳ một gian hàng, HR mở/đóng thủ công; một buổi tổng kết có thể mở cùng lúc gian hàng của nhiều kỳ. Có buổi tổng kết kiêm **kết nạp thành viên mới** (CTV → ACTIVE hàng loạt) → nhớ khi làm tuyển CTV.
 - **Bài 8.2 xong** (PR #26): bean `Clock` trong `common/config/TimeConfig` (`CLUB_ZONE = Asia/Ho_Chi_Minh`); service lấy ngày bằng `LocalDate.now(clock)`, test thay bằng `@MockitoBean Clock` (`CurrentTermTest`, có case 00:30 ngày 01/01 giờ VN để bắt lỗi dùng nhầm UTC). `@Query` JPQL đầu tiên: `TermRepository.findContaining(date)`. `GET /api/terms/current` (không có kỳ → 404), `GET /api/terms?shopOpen=true|false`.
-- **Đang làm: Bài 8.5, học nhanh TypeScript + React** trước Bài 9. Code học nằm ở thư mục playground **ngoài repo** (laptop: `D:eact-playground`), không commit vào FEVeID. Node 24 + npm 11 đã có trên laptop. Lộ trình: (A) TypeScript cho người biết Java, (B) React core với Vite, gọi API backend qua Vite proxy, (C) React Router + TanStack Query + Ant Design.
+- **Thiết kế frontend đã chốt (20/11)**, ghi ở `CLAUDE.md` mục Frontend: nhiều hiệu ứng chỉ ở khu công khai (tham khảo game.kyucdisan.com: Next.js + video nền + GSAP, font Alegreya + Be Vietnam Pro), khu nội bộ dùng Ant Design gọn; làm hiệu ứng sau MVP (Bài 14.5); chủ dự án tự thiết kế, CLB đã có tài nguyên.
+- **Đang làm: Bài 8.5, học nhanh TypeScript + React** trước Bài 9. Code học nằm ở thư mục playground **ngoài repo** (laptop: `D:
+eact-playground`), không commit vào FEVeID. Node 24 + npm 11 đã có trên laptop. Tiến độ: `src/learn/01-types.ts` xong (type, union, `find`/`filter`/`toSorted`/`map`, narrowing, `?.`/`??`; đã hiểu kiểu chỉ kiểm tra lúc biên dịch, lúc chạy bị xóa → cần Zod cho dữ liệu API). Chủ dự án **hoàn toàn mới với JS/frontend** → code mẫu cần comment giải thích kỹ, so sánh với Java. Tiếp theo: `02-fetch.ts` (login + `fetchTerms` + `Result<T>`, cần backend profile dev). Lộ trình: (A) TypeScript cho người biết Java, (B) React core với Vite, gọi API backend qua Vite proxy, (C) React Router + TanStack Query + Ant Design.
 - **Bài học trong các phiên 17–19/11:**
   - `@PreAuthorize` gọi bean (`@departmentAccess.isManagerOf(#departmentId, authentication.name)`): tên `#...` phải trùng tên tham số Java. Trả 403 (không phải 404) cho ban không tồn tại để người ngoài không dò được.
   - Self-invocation: gọi method trong cùng class thì không đi qua proxy → `@Transactional`/`@Cacheable` của method được gọi bị bỏ qua.

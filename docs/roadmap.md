@@ -27,6 +27,9 @@ Nguyên tắc: làm theo lát dọc (migration → entity → API → test → m
 ## Giai đoạn 1 – Sự kiện miễn phí trọn vòng
 CRUD sự kiện, trang sự kiện công khai, đăng ký (nội bộ + khách), check-in QR, Finalize sự kiện (HR chốt tổ chức/hỗ trợ), sổ cái điểm.
 
+## Sau MVP – Landing page khu công khai
+Giới thiệu CLB, các ban, sự kiện nổi bật, tuyển CTV, gian hàng quà; nhiều hình ảnh + hiệu ứng khi cuộn (Motion). Khu nội bộ giữ Ant Design gọn.
+
 ## Giai đoạn 2 – Shop & tổng kết kỳ
 Shop đổi quà, phát quà ở buổi tổng kết, Personal Journey, Dashboard cơ bản, thông báo trong app + email.
 

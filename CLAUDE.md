@@ -51,6 +51,12 @@ docs/              requirements.md (FR chính thức), Context.docx (bản gốc
 
 React + TypeScript + Vite, Ant Design, TanStack Query, React Router, React Hook Form + Zod; API client sinh từ OpenAPI của backend.
 
+Thiết kế (chốt 20/11/2026):
+- **Khu công khai** (Guest: giới thiệu CLB, các ban, sự kiện công khai, tuyển CTV): landing page nhiều hình ảnh và hiệu ứng khi cuộn, tham khảo phong cách game.kyucdisan.com (phần đánh số, video/ảnh lớn đầu trang, đường lượn sóng giữa các phần, ảnh kiểu polaroid). Thư viện hiệu ứng: **Motion**. Tôn trọng `prefers-reduced-motion`, nén video cho mobile.
+- **Khu nội bộ** (Member/HR/BCN): Ant Design gọn, chỉ hiệu ứng nhẹ (chuyển trang, hover).
+- Chủ dự án là người thiết kế duy nhất; CLB đã có đủ tài nguyên (logo, ảnh/video). Chốt màu + font sớm qua theme Ant Design (`ConfigProvider`); làm hiệu ứng **sau mốc MVP**.
+- Giữ Vite SPA (không chuyển Next.js); ảnh xem trước khi chia sẻ link Facebook do backend trả thẻ Open Graph.
+
 ## Quyết định nghiệp vụ đã chốt
 
 - Điểm hoạt động là **sổ cái** (`point_transactions`, append-only, gắn `term_id`), không lưu cột `points`. Tổ chức +4, hỗ trợ +2 (HR xác nhận), tham gia +1 (qua check-in).
