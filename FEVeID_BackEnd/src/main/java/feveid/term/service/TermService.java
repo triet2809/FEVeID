@@ -7,10 +7,10 @@ import feveid.term.dto.TermResponse;
 import java.util.List;
 
 public interface TermService {
-    List<TermResponse> getTerms();
     TermResponse getTermById(Long id);
     TermResponse createTerm(TermRequest request);
     TermResponse updateTerm(Long id, TermRequest request);
     TermResponse changeShopStatus(Long id, ShopStatusRequest request);
-
+    List<TermResponse> getTerms(Boolean shopOpen);
+    TermResponse getCurrentTerm();
 }

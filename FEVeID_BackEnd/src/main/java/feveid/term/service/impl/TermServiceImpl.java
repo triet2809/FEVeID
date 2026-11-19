@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -19,14 +21,7 @@ import java.util.List;
 public class TermServiceImpl implements TermService {
 
     private final TermRepository termRepository;
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TermResponse> getTerms() {
-        return termRepository.findAllByOrderByStartDateDesc().stream()
-                .map(TermResponse::from)
-                .toList();
-    }
+    private final Clock clock;
 
     @Override
     @Transactional(readOnly = true)
@@ -37,10 +32,10 @@ public class TermServiceImpl implements TermService {
     @Override
     @Transactional
     public TermResponse createTerm(TermRequest request) {
-        if(termRepository.existsByNameIgnoreCase(request.name())){
+        if (termRepository.existsByNameIgnoreCase(request.name())) {
             throw new ConflictException("Tên kỳ đã tồn tại");
         }
-        if(termRepository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(request.endDate(), request.startDate())){
+        if (termRepository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(request.endDate(), request.startDate())) {
             throw new ConflictException("Thời gian kỳ bị chồng lên một kỳ khác");
         }
         Term saved = termRepository.save(Term.builder()
@@ -56,11 +51,11 @@ public class TermServiceImpl implements TermService {
     public TermResponse updateTerm(Long id, TermRequest request) {
         Term term = findById(id);
         // So với các kỳ KHÁC (IdNot): giữ nguyên tên/ngày của chính mình thì không tính là trùng
-        if(termRepository.existsByNameIgnoreCaseAndIdNot(request.name(), id)){
+        if (termRepository.existsByNameIgnoreCaseAndIdNot(request.name(), id)) {
             throw new ConflictException("Tên kỳ đã tồn tại");
 
         }
-        if(termRepository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqualAndIdNot(request.endDate(), request.startDate(), id)){
+        if (termRepository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqualAndIdNot(request.endDate(), request.startDate(), id)) {
             throw new ConflictException("Thời gian kỳ bị chồng lên một kỳ khác");
         }
         term.setName(request.name());
@@ -78,6 +73,27 @@ public class TermServiceImpl implements TermService {
         term.setShopOpen(request.open());
         return TermResponse.from(term);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TermResponse> getTerms(Boolean shopOpen) {
+        //null = không lọc (trả tất cả); true/false chỉ các kỳ đang mở/đóng gian hàng
+        List<Term> terms = (shopOpen == null)
+                ? termRepository.findAllByOrderByStartDateDesc()
+                : termRepository.findByShopOpenOrderByStartDateDesc(shopOpen);
+        return terms.stream().map(TermResponse::from).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TermResponse getCurrentTerm() {
+        // Lấy ngày qua Clock (không gọi LocalDate.now() trơn) để test đặt được "hôm nay"
+        LocalDate today = LocalDate.now(clock);
+        return termRepository.findContaining(today)
+                .map(TermResponse::from)
+                .orElseThrow(() -> new NotFoundException("Hiện không có kỳ nào đang diễn ra"));
+    }
+
     private Term findById(Long id) {
         return termRepository.findById(id).orElseThrow(() -> new NotFoundException("Không tìm thấy kỳ"));
     }
