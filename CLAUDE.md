@@ -34,7 +34,7 @@ State machine trong FR:
 
 ```
 FEVeID_BackEnd/    Spring Boot REST API
-FEVeID_FrontEnd/   React (chưa khởi tạo)
+FEVeID_FrontEnd/   React + TypeScript (Vite)
 docs/              requirements.md (FR chính thức), Context.docx (bản gốc), UsecaseDiagram/
 ```
 
@@ -47,9 +47,14 @@ docs/              requirements.md (FR chính thức), Context.docx (bản gốc
 - DTO dùng Java `record` + Jakarta Validation.
 - Schema chỉ thay đổi qua Flyway migration mới (`src/main/resources/db/migration/V{n}__mo_ta.sql`); không sửa migration đã chạy. `ddl-auto=validate`.
 
-## Frontend (dự kiến)
+## Frontend
 
-React + TypeScript + Vite, Ant Design, TanStack Query, React Router, React Hook Form + Zod; API client sinh từ OpenAPI của backend.
+React 19 + TypeScript + Vite, Ant Design 6, TanStack Query 5, React Router 7. Form dùng `Form` của antd (không dùng React Hook Form/Zod, chốt 23/11/2026).
+
+- Chạy (trong `FEVeID_FrontEnd/`, **không** chạy npm ở gốc repo): `npm install`, `npm run dev` (http://localhost:5173, proxy `/api` → 8080), `npm run lint`, `npm run build`.
+- Gọi API chỉ qua `src/api/client.ts` (`api.get/post/...`): gửi kèm cookie, tự gắn header `X-XSRF-TOKEN` cho POST/PUT/PATCH/DELETE, lỗi → `HttpError`.
+- Kiểu dữ liệu API sinh từ OpenAPI: chạy backend rồi `npm run gen:api` → `src/api/schema.d.ts` (commit file này, không sửa tay). `openapi-typescript` chưa khai báo hỗ trợ TS 6 nên dùng `overrides` trong `package.json`.
+- Đăng nhập: JWT trong cookie httpOnly `access_token` (JS không đọc được), lấy thông tin + role qua `GET /api/members/me`. Khi deploy frontend và `/api` phải chung domain.
 
 Thiết kế (chốt 20/11/2026):
 - **Khu công khai** (Guest: giới thiệu CLB, các ban, sự kiện công khai, tuyển CTV): landing page nhiều hình ảnh và hiệu ứng khi cuộn, tham khảo phong cách game.kyucdisan.com (phần đánh số, video/ảnh lớn đầu trang, đường lượn sóng giữa các phần, ảnh kiểu polaroid). Thư viện hiệu ứng: **Motion**. Tôn trọng `prefers-reduced-motion`, nén video cho mobile.
