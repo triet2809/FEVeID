@@ -2,8 +2,10 @@ package feveid.auth.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +15,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 import java.io.IOException;
 
@@ -56,10 +59,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getTokenFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+        // 1. Có header Authorization (Swagger "Authorize", Postman, test) → CHỈ dùng header, không xét cookie.
+        //    SecurityConfig bỏ qua CSRF cho các request này, nên không được lén dùng cookie ở đây.
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(bearerToken)) {
+            return bearerToken.startsWith("Bearer ") ? bearerToken.substring(7) : null;
         }
-        return null;
+        // 2. Không có header → lấy từ cookie mà trình duyệt tự gửi kèm (frontend React)
+        Cookie cookie = WebUtils.getCookie(request, AuthCookies.ACCESS_TOKEN);
+        return cookie != null ? cookie.getValue() : null;
     }
 }
