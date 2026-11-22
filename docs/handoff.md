@@ -26,6 +26,11 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 - Trước khi chạy test: yêu cầu **đoán trước** kết quả (xanh/đỏ, status code); sau đó giải thích kết quả thật.
 - Claude **không sửa code/config của dự án** trừ khi được nhờ cụ thể. Sửa docs, chạy lệnh chỉ đọc để chẩn đoán thì được.
 - Luôn **kiểm tra trạng thái git/GitHub thật** trước khi coi một bước là xong.
+- **Từ Bài 9 (chốt 23/11/2026), chia việc theo độ mới:**
+  1. *Mẫu đã quen* (CRUD, DTO, migration, repository, trang danh sách/form giống trang đã làm): Claude viết code trên nhánh; chủ dự án đọc theo "bản đồ luồng" (bước nào chạy ở file:dòng nào) và trả lời 2–3 câu hỏi kiểm tra hiểu trước khi merge.
+  2. *Kiến thức mới* (VietQR + webhook, QR check-in HMAC, job hết hạn giữ chỗ, upload ảnh): học trước (giải thích + sơ đồ + thử nhỏ trong playground) → viết test trước → chủ dự án tự viết phần lõi (20–60 dòng quyết định), Claude viết phần khung.
+  3. *Tiền / bảo mật*: như loại 2, thêm: chủ dự án giải thích được từng dòng lõi; test các ca gửi trùng, gửi giả, gửi đồng thời.
+  - Quy tắc chung: không merge code mà chủ dự án không giải thích được. Khi giải thích luồng frontend, dùng ngôn ngữ đơn giản và so sánh với Spring (Route ≈ @GetMapping, useParams ≈ @PathVariable, RequireAuth ≈ Security filter, TanStack Query ≈ @Cacheable); tránh dồn nhiều thuật ngữ một lúc.
 - Hướng dẫn git: đưa cả thao tác Sourcetree lẫn lệnh git; nói rõ lệnh chạy trong shell nào.
 
 ### Quy trình Git / PR
@@ -46,7 +51,7 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 6 | Tách `accounts` / `members` (6.1 entity, 6.2 tạo Member khi HR tạo account, 6.3 API hồ sơ + HR đổi trạng thái) | ✅ PR #12, #13, #15, #18, #20 |
 | 7 | `departments` + `department_memberships` (7.1 CRUD ban, 7.2 gán/chuyển ban + chức vụ, 7.3 phân quyền Trưởng ban) | ✅ PR #22, #23, #24 |
 | 8 | `terms` (8.1 CRUD + mở/đóng gian hàng, 8.2 kỳ hiện tại + `Clock` + lọc gian hàng đang mở) | ✅ PR #25, #26 |
-| 8.5 | Học nhanh TypeScript + React (khoảng 10h, làm trong thư mục playground ngoài repo) | ⏳ đang làm |
+| 8.5 | Học nhanh TypeScript + React (A: TS; B1–B4: component, state, useEffect, cập nhật dữ liệu; C1: React Router; C2: TanStack Query; C3: Ant Design) | ✅ 23/11 (playground ngoài repo) |
 | 9 | Khởi tạo React (login + layout theo role); trước đó học nhanh React/TS khoảng 10h | |
 | 10 | CRUD sự kiện + upload ảnh | |
 | 11 | Trang sự kiện công khai + đăng ký | |
@@ -64,11 +69,13 @@ Xem lại tốc độ ngày 09/11: tuần 1 mới xong Bài 5 và khoảng 70% B
 
 Ngày 11/11: xong Bài 6, bắt đầu Bài 7, đúng kế hoạch mới.
 
-Ngày 19/11: xong Bài 7 và Bài 8, đúng kế hoạch mới (tuần 3 = Bài 8 + React). Tiếp theo: học nhanh TS/React (8.5) rồi Bài 9.
+Ngày 19/11: xong Bài 7 và Bài 8, đúng kế hoạch mới (tuần 3 = Bài 8 + React).
+
+Ngày 23/11: xong 8.5 (TS/React, lâu hơn dự kiến vì chủ dự án hoàn toàn mới với frontend). Bài 9 bắt đầu tuần 4 (24/11); MVP (Bài 14) dự kiến lùi về khoảng 5–8/12.
 
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-19 tối (trên laptop Windows)_
+_Cập nhật: 2026-11-23 (trên laptop Windows)_
 
 - **Đã xong Bài 7** (đã nằm trên `master`):
   - PR #22: CRUD ban. `GET /api/departments`, `GET /api/departments/{id}` công khai (`permitAll` chỉ cho method GET); `POST`/`PUT` chỉ PRESIDENT; tên ban unique không phân biệt hoa thường (`LOWER(name)`) → trùng thì 409. Chưa làm xóa ban.
@@ -78,8 +85,11 @@ _Cập nhật: 2026-11-19 tối (trên laptop Windows)_
 - **Nghiệp vụ đã chốt (18/11)**, đã ghi vào `requirements.md` mục 11.2 và `CLAUDE.md`: kỳ = kỳ học Fall/Spring/Summer, điểm tính riêng; mỗi kỳ một gian hàng, HR mở/đóng thủ công; một buổi tổng kết có thể mở cùng lúc gian hàng của nhiều kỳ. Có buổi tổng kết kiêm **kết nạp thành viên mới** (CTV → ACTIVE hàng loạt) → nhớ khi làm tuyển CTV.
 - **Bài 8.2 xong** (PR #26): bean `Clock` trong `common/config/TimeConfig` (`CLUB_ZONE = Asia/Ho_Chi_Minh`); service lấy ngày bằng `LocalDate.now(clock)`, test thay bằng `@MockitoBean Clock` (`CurrentTermTest`, có case 00:30 ngày 01/01 giờ VN để bắt lỗi dùng nhầm UTC). `@Query` JPQL đầu tiên: `TermRepository.findContaining(date)`. `GET /api/terms/current` (không có kỳ → 404), `GET /api/terms?shopOpen=true|false`.
 - **Thiết kế frontend đã chốt (20/11)**, ghi ở `CLAUDE.md` mục Frontend: nhiều hiệu ứng chỉ ở khu công khai (tham khảo game.kyucdisan.com: Next.js + video nền + GSAP, font Alegreya + Be Vietnam Pro), khu nội bộ dùng Ant Design gọn; làm hiệu ứng sau MVP (Bài 14.5); chủ dự án tự thiết kế, CLB đã có tài nguyên.
-- **Đang làm: Bài 8.5, học nhanh TypeScript + React** trước Bài 9. Code học nằm ở thư mục playground **ngoài repo** (laptop: `D:
-eact-playground`), không commit vào FEVeID. Node 24 + npm 11 đã có trên laptop. Tiến độ: `src/learn/01-types.ts` xong (type, union, `find`/`filter`/`toSorted`/`map`, narrowing, `?.`/`??`; đã hiểu kiểu chỉ kiểm tra lúc biên dịch, lúc chạy bị xóa → cần Zod cho dữ liệu API). Chủ dự án **hoàn toàn mới với JS/frontend** → code mẫu cần comment giải thích kỹ, so sánh với Java. Tiếp theo: `02-fetch.ts` (login + `fetchTerms` + `Result<T>`, cần backend profile dev). Lộ trình: (A) TypeScript cho người biết Java, (B) React core với Vite, gọi API backend qua Vite proxy, (C) React Router + TanStack Query + Ant Design.
+- **Bài 8.5 xong (20–23/11).** Playground `D:\react-playground` (laptop, ngoài repo, không commit): Vite + React 19 + TS, react-router 7, @tanstack/react-query 5 (+ devtools), antd 6. Có login (Form antd) → lưu token `localStorage` (`auth.ts`), `RequireAuth` + `AppLayout` (Layout antd), `/terms` (Table + Switch mở/đóng gian hàng qua `useMutation` + `setQueryData` cập nhật cả `["terms"]` lẫn `["terms", id]`), `/terms/:id`, `/about` công khai, 404; Vite proxy `/api` → 8080; `hooks/useLogout` (xóa token + `queryClient.clear()`). Các bản trước/sau của từng phần lưu ở `src/learn/*-truoc-C*.tsx.txt`.
+  - Đã hiểu: state là bản sao trong bộ nhớ trình duyệt (mất khi F5) còn DB là bản thật; React chỉ vẽ lại khi set giá trị khác tham chiếu (đã tự thấy lỗi khi sửa trực tiếp mảng); dữ liệu suy ra được thì không lưu thành state; `<Link>` không tải lại trang; frontend chặn (RequireAuth, rules của Form) chỉ để trải nghiệm, bảo mật thật ở backend.
+  - Còn yếu: đọc vào bên trong file để biết nó làm gì (câu "đã đăng nhập vào /login thì sao" trả lời sai), thứ tự các bước khi thêm tính năng, đọc đề "thêm" vs "thay" vs "chuyển" (đã 3 lần copy thay vì cắt / thay thay vì thêm / thêm import trùng). Hay chạy `npm` nhầm ở `D:\FEVeID` (tạo `package.json`, `package-lock.json`, `node_modules` ở gốc repo → xóa, không commit).
+- **Màu chủ đạo CLB tạm dùng `#7E00B2`** (tím; đo từ ảnh chụp vải áo, có thể lệch) → hỏi người thiết kế lấy mã gốc. Font: Be Vietnam Pro.
+- **Tiếp theo: Bài 9**, khởi tạo `FEVeID_FrontEnd` trong repo theo đúng stack của playground (+ React Hook Form/Zod, API client sinh từ OpenAPI). Cần quyết khi bắt đầu: lấy role người dùng để hiện layout theo role (login hiện chỉ trả `accessToken` → thêm role vào JWT/response hoặc gọi `GET /api/members/me`); cách lưu token (localStorage vs cookie httpOnly); CORS khi deploy.
 - **Bài học trong các phiên 17–19/11:**
   - `@PreAuthorize` gọi bean (`@departmentAccess.isManagerOf(#departmentId, authentication.name)`): tên `#...` phải trùng tên tham số Java. Trả 403 (không phải 404) cho ban không tồn tại để người ngoài không dò được.
   - Self-invocation: gọi method trong cùng class thì không đi qua proxy → `@Transactional`/`@Cacheable` của method được gọi bị bỏ qua.
