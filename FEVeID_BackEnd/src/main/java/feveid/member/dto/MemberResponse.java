@@ -1,6 +1,7 @@
 package feveid.member.dto;
 
 
+import feveid.account.enums.AccountRole;
 import feveid.member.entity.Member;
 import feveid.member.enums.MemberStatus;
 
@@ -14,6 +15,7 @@ public record MemberResponse(
         String phone,
         String avatarUrl,
         MemberStatus memberStatus,
+        AccountRole role, // role toàn CLB, frontend dùng để hiện menu theo quyền
         LocalDate joinedAt
 ) {
     public static MemberResponse from(Member member) {
@@ -25,6 +27,7 @@ public record MemberResponse(
                 member.getPhone(),
                 member.getAvatarUrl(),
                 member.getMemberStatus(),
+                member.getAccount().getRole(),
                 member.getJoinedAt()
         );
     }

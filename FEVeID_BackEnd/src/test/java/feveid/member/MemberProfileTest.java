@@ -33,7 +33,18 @@ public class MemberProfileTest extends ApiTestSupport{
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(EMAIL))
                 .andExpect(jsonPath("$.fullName").value("Nguyen Van A"))
-                .andExpect(jsonPath("$.memberStatus").value("CTV"));
+                .andExpect(jsonPath("$.memberStatus").value("CTV"))
+                .andExpect(jsonPath("$.role").value("MEMBER"));
+    }
+
+    @Test
+    void getMe_hr_returnsHrRole() throws Exception {
+        createMember("hr@feveid.test", AccountRole.HR, "Tran Thi HR");
+
+        mockMvc.perform(get("/api/members/me")
+                .header("Authorization", "Bearer " + tokenOf("hr@feveid.test")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("HR"));
     }
 
     @Test
