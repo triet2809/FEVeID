@@ -32,8 +32,16 @@ const CSRF_HEADER = "X-XSRF-TOKEN";
 // - giá trị cookie có thể bị mã hóa URL → decodeURIComponent(...)
 // - hàm mảng hay dùng: split, find, startsWith, slice
 function readCookie(name: string): string | undefined {
-  void name; // xóa dòng này khi viết xong (chỉ để tránh lỗi "biến không dùng" lúc chưa làm)
-  return undefined;
+  const prefix = `${name}=`; // "XSRF-TOKEN="
+  // document.cookie = "a=1; XSRF-TOKEN=abc%3D123; b=2"
+  const found = document.cookie
+    .split("; ") // → ["a=1", "XSRF-TOKEN=abc%3D123", "b=2"]
+    .find((part) => part.startsWith(prefix)); // → "XSRF-TOKEN=abc%3D123", không thấy → undefined
+  if (found === undefined) {
+    return undefined;
+  }
+  // Bỏ phần "XSRF-TOKEN=" ở đầu → "abc%3D123", giải mã URL → "abc=123"
+  return decodeURIComponent(found.slice(prefix.length));
 }
 
 // Backend trả lỗi dạng ApiError { status, error, message, path } → lấy message; không đọc được thì dùng câu chung
@@ -44,22 +52,30 @@ async function readErrorMessage(res: Response): Promise<string> {
   } catch {
     // body rỗng (401/403 do Spring Security trả) hoặc không phải JSON → dùng câu mặc định bên dưới
   }
-  if (res.status === 401) return "Phiên đăng nhập đã hết, vui lòng đăng nhập lại";
+  if (res.status === 401)
+    return "Phiên đăng nhập đã hết, vui lòng đăng nhập lại";
   if (res.status === 403) return "Bạn không có quyền thực hiện thao tác này";
   return `Lỗi máy chủ (HTTP ${res.status})`;
 }
 
-async function apiFetch<T>(path: string, method: string, body?: unknown): Promise<T> {
+async function apiFetch<T>(
+  path: string,
+  method: string,
+  body?: unknown,
+): Promise<T> {
   const headers = new Headers();
   if (body !== undefined) {
     headers.set("Content-Type", "application/json");
   }
 
-  // TODO(9.3 - bạn viết): nếu method nằm trong UNSAFE_METHODS và đọc được cookie CSRF_COOKIE
-  // thì headers.set(CSRF_HEADER, <giá trị cookie>).
-  // Thiếu bước này: mọi POST/PUT/PATCH/DELETE sau khi đăng nhập đều bị 403.
-  void [readCookie, UNSAFE_METHODS, CSRF_COOKIE, CSRF_HEADER]; // xóa dòng này khi viết xong
-
+  // Chỉ các method sửa dữ liệu mới cần (GET được backend bỏ qua CSRF)
+  if (UNSAFE_METHODS.includes(method)) {
+    const csrfToken = readCookie(CSRF_COOKIE);
+    // Chưa có cookie (vd: lần đầu gọi login) thì không gắn; nếu không, header sẽ thành chuỗi "undefined"
+    if (csrfToken !== undefined) {
+      headers.set(CSRF_HEADER, csrfToken);
+    }
+  }
   const res = await fetch(path, {
     method,
     headers,
