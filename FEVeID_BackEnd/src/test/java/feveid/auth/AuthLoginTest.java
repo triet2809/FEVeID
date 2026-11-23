@@ -1,7 +1,7 @@
 package feveid.auth;
 
 
-import com.jayway.jsonpath.JsonPath;
+import feveid.auth.security.AuthCookies;
 import feveid.TestcontainersConfiguration;
 import feveid.account.entity.Account;
 import feveid.account.enums.AccountStatus;
@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -64,12 +64,12 @@ public class AuthLoginTest {
     }
 
     @Test
-    void activeAccount_correctPassword_returnsToken() throws Exception {
+    void activeAccount_correctPassword_setsTokenCookie() throws Exception {
         createAccount("active@feveid.test", AccountStatus.ACTIVE);
 
         login("active@feveid.test", PASSWORD)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty());
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().exists(AuthCookies.ACCESS_TOKEN));
 
     }
 
@@ -101,9 +101,8 @@ public class AuthLoginTest {
     @Test
     void tokenStopsWorking_afterAccountIsDisable() throws Exception {
         Account account = createAccount("later-disable@feveid.test", AccountStatus.ACTIVE);
-        String body = login("later-disable@feveid.test", PASSWORD)
-                .andReturn().getResponse().getContentAsString();
-        String token = JsonPath.read(body, "$.accessToken");
+        String token = login("later-disable@feveid.test", PASSWORD)
+                .andReturn().getResponse().getCookie(AuthCookies.ACCESS_TOKEN).getValue();
 
         account.setAccountStatus(AccountStatus.DISABLED);
         accountRepository.save(account);

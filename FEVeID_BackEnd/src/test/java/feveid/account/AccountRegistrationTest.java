@@ -1,6 +1,7 @@
 package feveid.account;
 
 
+import feveid.auth.security.AuthCookies;
 import com.jayway.jsonpath.JsonPath;
 import feveid.TestcontainersConfiguration;
 import feveid.account.dto.CreateAccountRequest;
@@ -138,13 +139,14 @@ class AccountRegistrationTest {
     }
 
     private String tokenOf(String email) throws Exception {
-        String body = mockMvc.perform(post("/api/auth/login")
+        // token nằm trong cookie access_token; test vẫn gửi bằng header Bearer (không cần CSRF)
+        return mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {"email": "%s", "password": "%s"}
                         """.formatted(email, PASSWORD))
-        ).andReturn().getResponse().getContentAsString();
-        return JsonPath.read(body, "$.accessToken");
+        ).andReturn().getResponse()
+                .getCookie(AuthCookies.ACCESS_TOKEN).getValue();
     }
 
 

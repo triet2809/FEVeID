@@ -1,6 +1,5 @@
 package feveid.auth.service.impl;
 
-import feveid.auth.dto.JwtAuthResponse;
 import feveid.auth.dto.LoginRequest;
 import feveid.auth.security.JwtTokenProvider;
 import feveid.auth.service.AuthService;
@@ -23,7 +22,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public JwtAuthResponse login(LoginRequest loginRequest) {
+    public String login(LoginRequest loginRequest) {
         // 1. Gọi AuthenticationManager để kiểm tra email và password có khớp trong DB không
         // (Nó sẽ tự động gọi ngầm tới UserDetailsServiceImpl của bạn ở dưới)
         Authentication authentication = authenticationManager.authenticate(
@@ -35,10 +34,7 @@ public class AuthServiceImpl implements AuthService {
         // 2. Nếu không bị văng lỗi (tức là pass đúng), lưu trạng thái đăng nhập vào Context
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // 3. Gọi "Nhà máy" tạo JWT Token
-        String token = jwtTokenProvider.generateToken(authentication);
-
-        // 4. Đóng gói Token và trả về cho Controller
-        return new JwtAuthResponse(token, "Bearer");
+        // 3. Gọi "Nhà máy" tạo JWT Token và trả về cho Controller (controller sẽ đặt nó vào cookie)
+        return jwtTokenProvider.generateToken(authentication);
     }
 }
