@@ -1,0 +1,10 @@
+/* Ant Design tự lo giao diện; ở đây chỉ vài dòng nền tối thiểu. */
+body {
+  margin: 0;
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}

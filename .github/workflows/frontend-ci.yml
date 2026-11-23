@@ -1,0 +1,35 @@
+name: Frontend CI
+
+on:
+  push:
+    paths:
+      - 'FEVeID_FrontEnd/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [ master ]
+jobs:
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FEVeID_FrontEnd
+
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: FEVeID_FrontEnd/package-lock.json
+      # npm ci: cài đúng phiên bản trong package-lock.json (không tự nâng như npm install)
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      # tsc -b (kiểm tra kiểu) + vite build
+      - name: Type check and build
+        run: npm run build
