@@ -79,16 +79,20 @@ Ngày 24/11: xong Bài 9 (gồm cả việc đổi sang cookie httpOnly, ngoài 
 
 _Cập nhật: 2026-11-25 (trên laptop Windows)_
 
-- **Bài 10 đang làm.** Chia: 10.1 logic thuần · 10.2 CRUD · 10.3 upload banner (**Cloudinary**, chốt 24/11) · 10.4 frontend.
-  - **10.1 xong (PR #36):** `EventStatusCalculator.compute` + `PhaseScheduleValidator.validate` (`feveid/event/schedule/`), chủ dự án viết lõi theo code mẫu (xin code mẫu thay vì tự viết từ gợi ý). Thêm `BadRequestException` → 400. Chốt thêm: giai đoạn đầu tiên phải là `UPCOMING` (requirements 6.1).
-  - **10.2 trên nhánh `feat/event-crud`** (chưa merge): V8 `events` + `event_phases`, `/api/events` chỉ HR/PRESIDENT (trang member/guest ở Bài 11), `PUT /{id}/phases` thay cả lịch, `start-now`, `publish` (cần lịch + giờ mở/đóng đăng ký, đóng ≤ kết thúc, chưa kết thúc), `cancel` (vĩnh viễn), `DELETE` chỉ DRAFT; `capacity` null = không giới hạn. `EventTest` 27 test; tổng 195 test xanh; `schema.d.ts` đã sinh lại.
-  - **Chốt 25/11:** sự kiện thuộc cả CLB, **không có ban phụ trách** (CLB có Ban Kế hoạch, Truyền thông, Thực hiện). `owner` = leader do BCN gán sau khi chọn team, hoặc người gửi Event Proposal; được để trống. Đã bỏ `department_id` khỏi V8 (V8 chưa merge; DB dev laptop đã drop bảng + xóa dòng V8 trong `flyway_schema_history` rồi áp lại). Mac mini chưa chạy V8 nên không bị.
-  - Câu hỏi kiểm tra 10.1 + 10.2: chủ dự án nhờ Claude trả lời hộ (25/11) → lần sau hỏi lại ngắn về `@Transactional` rollback và dirty checking, LAZY ngoài transaction.
-- **Tiếp theo:** review + merge PR `feat/event-crud`, rồi 10.3 (chủ dự án tự tạo tài khoản Cloudinary, không gửi key vào chat).
-- Ghi chú cũ khi bắt đầu Bài 10:
-  - Đọc `requirements.md` mục 2.4, 5.2, 6, 6.1 (sự kiện). Trạng thái: `DRAFT → UPCOMING → ONGOING → COMPLETED` (+ `CANCELLED`), chốt 24/11: UPCOMING/ONGOING/COMPLETED tính từ lịch giai đoạn `event_phases`, không dùng job.
-  - Upload ảnh là **kiến thức mới** → loại 2 của mentor mode: giải thích + thử nhỏ trước, viết test trước, chủ dự án tự viết phần lõi. Cần chốt nơi lưu ảnh (Cloudinary hay Cloudflare R2, xem `roadmap.md` "Module upload file dùng chung").
-  - CRUD sự kiện là mẫu đã quen → Claude viết, chủ dự án trả lời câu hỏi kiểm tra trước khi merge. Nhớ thêm `@Schema(requiredMode = REQUIRED)` cho DTO mới và chạy `npm run gen:api` trong cùng PR.
+- **Bài 10 đang làm.** Chia: 10.1 logic thuần · 10.2 CRUD · 10.3a kiểm tra ảnh · **10.3b Cloudinary + endpoint** · 10.4 frontend.
+  - **10.1 xong (PR #36):** `EventStatusCalculator.compute` + `PhaseScheduleValidator.validate` (`feveid/event/schedule/`). Thêm `BadRequestException` → 400. Chốt: giai đoạn đầu tiên phải là `UPCOMING` (requirements 6.1).
+  - **10.2 xong (PR #37):** V8 `events` + `event_phases`; `/api/events` chỉ HR/PRESIDENT (trang member/guest ở Bài 11); `PUT /{id}/phases` thay cả lịch; `POST /{id}/phases/{phaseId}/start-now`; `publish` (cần lịch + giờ mở/đóng đăng ký, đóng ≤ kết thúc, chưa kết thúc); `cancel` (vĩnh viễn); `DELETE` chỉ DRAFT; `capacity` null = không giới hạn. `EventTest` 27 test, tổng 195 test.
+  - **Chốt 25/11:** sự kiện thuộc cả CLB, **không có ban phụ trách** (CLB có Ban Kế hoạch, Truyền thông, Thực hiện). `owner` = leader do BCN gán sau khi chọn team, hoặc người gửi Event Proposal; được để trống.
+  - **10.3a xong (PR #38):** `common/upload/ImageValidator.validate(byte[])` kiểm tra magic bytes JPEG/PNG/WebP (`RIFF`+`WEBP`), tối đa 10MB (= giới hạn Cloudinary free), không nhận SVG/GIF/HEIC; `ImageType` có `mimeType()`. `ImageValidatorTest` 15 test. `.env.example` đã có `CLOUDINARY_URL`. Việc nhỏ còn sót: khối Javadoc của `validate` đang nằm trên `JPEG_MAGIC` → chuyển xuống trên method ở PR 10.3b.
+  - Cloudinary: tài khoản của chủ dự án, cloud name `uxnv0tiq`, dùng API key tên "FEVeID" (không dùng Root). `CLOUDINARY_URL=cloudinary://<key>:<secret>@uxnv0tiq` đặt trong `FEVeID_BackEnd/.env` của **từng máy** (Mac mini chưa có → chủ dự án tự lấy secret ở Console → Settings → API Keys; không gửi secret vào chat).
+- **Tiếp theo: 10.3b** (mẫu đã quen + thư viện mới → Claude viết, chủ dự án đọc bản đồ luồng + trả lời câu hỏi). Thiết kế đã chốt:
+  - Upload **đi qua backend** (secret chỉ ở server, mình tự kiểm tra file). `PUT /api/events/{id}/banner` (multipart, field `file`) → `ImageValidator` → `ImageStorage.upload` → lưu `secure_url` vào `events.banner_url` → trả `EventResponse`. `DELETE /api/events/{id}/banner`.
+  - `public_id` cố định `feveid/events/{id}/banner`, `overwrite=true` → upload lại thì ghi đè, không có file rác, **không cần migration** (URL có số version nên trình duyệt không giữ ảnh cũ). Xóa sự kiện DRAFT thì xóa luôn ảnh.
+  - Interface `ImageStorage` (dùng chung, sau này avatar): bản thật dùng thư viện Cloudinary Java (kiểm tra version mới nhất trên Maven Central), `CLOUDINARY_URL` trống thì app vẫn chạy, chỉ upload báo lỗi; test dùng bản giả (`@MockitoBean` hoặc fake) → CI không cần key.
+  - `spring.servlet.multipart.max-file-size` khoảng 10MB + handler `MaxUploadSizeExceededException` → 413. Khóa upload khi sự kiện COMPLETED/CANCELLED (dùng lại `ensureScheduleEditable`).
+  - Đổi DTO/endpoint → chạy `npm run gen:api` trong cùng PR.
+  - Sau đó **10.4 frontend**: trang danh sách, form, trình sửa lịch giai đoạn, nút upload (FormData: **không** tự đặt `Content-Type`, vẫn cần header CSRF qua `client.ts`); hiển thị giờ theo `Asia/Ho_Chi_Minh`; ảnh dùng URL biến đổi `w_...,f_auto,q_auto`.
+- Câu hỏi kiểm tra 10.1–10.3a: chủ dự án đều nhờ Claude trả lời hộ (25/11), merge PR trước khi Claude review/trả lời xong. → Bài sau hỏi lại ngắn 2 câu (rollback `@Transactional` chỉ với `RuntimeException`; vì sao byte `FF` khác `0xFF`) trước khi viết code mới; nhắc chỉ merge PR `feat/...` sau khi Claude review.
 
 ### Bài 9 đã làm gì (23–24/11)
 - **PR #30 – JWT trong cookie httpOnly** (chủ dự án chọn cookie thay vì localStorage):
