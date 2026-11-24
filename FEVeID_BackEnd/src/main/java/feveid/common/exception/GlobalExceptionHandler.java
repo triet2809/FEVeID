@@ -36,6 +36,12 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
+    //400 dữ liệu sai nghiệp vụ (vd: lịch giai đoạn không hợp lệ)
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiError> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
     //400 lỗi body không phải JSON hợp lệ
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableException(HttpMessageNotReadableException ex, HttpServletRequest request) {
