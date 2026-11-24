@@ -23,7 +23,7 @@ Actor (quyền kế thừa: Department Leader, HR, BCN đều có toàn bộ quy
 Module (theo mục trong requirements.md): Club info (1, 2.2, 5.1) · Auth & Profile (2.1) · Member/Department (4.1, 3.1) · Journey (2.3) · Event (2.4, 5.2, 6) · Event Proposal (2.5, 5.3) · Recruitment (4.2) · Award (7) · Notification (2.7, 8) · Ticket (2.6, 9) · Dashboard (10) · Điểm & Shop (11) · Đăng ký / Check-in / Thanh toán (12).
 
 State machine trong FR:
-- Event: `DRAFT → OPEN_REGISTRATION → UPCOMING → ONGOING → COMPLETED` (+ `CANCELLED`)
+- Event: `DRAFT → UPCOMING → ONGOING → COMPLETED` (+ `CANCELLED`). Chỉ `DRAFT`/`PUBLISHED`/`CANCELLED` lưu trong DB; `UPCOMING`/`ONGOING`/`COMPLETED` tính lúc đọc từ lịch giai đoạn `event_phases` (tên tùy chỉnh + `kind` hệ thống), HR/BCN dời giờ được. Xem requirements 6.1.
 - Event Proposal: `DRAFT → SUBMITTED → UNDER_REVIEW → APPROVED / REJECTED` (+ `REVISION_REQUIRED`)
 - Ticket: `OPEN → ASSIGNED → IN_PROGRESS → RESOLVED → CLOSED` (+ `REJECTED`)
 - Ứng viên CTV: `APPLIED → SCREENING → INTERVIEW → PASSED / REJECTED`

@@ -81,7 +81,7 @@ _Cập nhật: 2026-11-24 (trên laptop Windows)_
 
 - **Đã xong Bài 1–9**, tất cả nằm trên `master` (#33). Không có nhánh dở dang.
 - **Tiếp theo: Bài 10, CRUD sự kiện + upload ảnh** (chủ dự án mở ở phiên mới). Việc đầu tiên:
-  - Đọc `requirements.md` mục 2.4, 5.2, 6 (sự kiện) và state machine `DRAFT → OPEN_REGISTRATION → UPCOMING → ONGOING → COMPLETED` (+ `CANCELLED`).
+  - Đọc `requirements.md` mục 2.4, 5.2, 6, 6.1 (sự kiện). Trạng thái: `DRAFT → UPCOMING → ONGOING → COMPLETED` (+ `CANCELLED`), chốt 24/11: UPCOMING/ONGOING/COMPLETED tính từ lịch giai đoạn `event_phases`, không dùng job.
   - Upload ảnh là **kiến thức mới** → loại 2 của mentor mode: giải thích + thử nhỏ trước, viết test trước, chủ dự án tự viết phần lõi. Cần chốt nơi lưu ảnh (Cloudinary hay Cloudflare R2, xem `roadmap.md` "Module upload file dùng chung").
   - CRUD sự kiện là mẫu đã quen → Claude viết, chủ dự án trả lời câu hỏi kiểm tra trước khi merge. Nhớ thêm `@Schema(requiredMode = REQUIRED)` cho DTO mới và chạy `npm run gen:api` trong cùng PR.
 
