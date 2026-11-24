@@ -166,7 +166,7 @@ Ban Chủ Nhiệm có quyền quản trị cao nhất đối với hoạt độn
 - Thiết lập thời gian đăng ký.
 - Thiết lập ban phụ trách.
 - Thiết lập số lượng thành viên.
-- Thay đổi trạng thái sự kiện. Trạng thái có thể gồm: `DRAFT → OPEN_REGISTRATION → UPCOMING → ONGOING → COMPLETED`, ngoài ra `CANCELLED`.
+- Công bố, hủy sự kiện; lập và chỉnh lịch các giai đoạn của sự kiện (xem 6.1).
 - Xem danh sách thành viên quan tâm sự kiện.
 - Xem danh sách thành viên đăng ký tham gia.
 - Phân công thành viên hoặc ban cho sự kiện.
@@ -203,15 +203,57 @@ Mỗi sự kiện cần quản lý:
 - Mô tả.
 - Banner/Image.
 - Địa điểm.
-- Thời gian bắt đầu.
-- Thời gian kết thúc.
-- Deadline đăng ký.
+- Lịch các giai đoạn (xem 6.1); thời gian bắt đầu/kết thúc suy ra từ lịch này.
+- Thời gian mở/đóng đăng ký (xem 12.1), tách riêng với lịch giai đoạn.
 - Người phụ trách.
 - Ban phụ trách.
 - Số lượng thành viên dự kiến.
 - Trạng thái sự kiện.
 - Danh sách thành viên tham gia.
 - Danh sách member wishlist.
+
+### 6.1. Trạng thái và lịch giai đoạn
+
+Trạng thái hiển thị của sự kiện là một trong 5 giá trị:
+
+| Trạng thái | Ý nghĩa | Cách có |
+|---|---|---|
+| `DRAFT` | Chưa công bố, chỉ HR/BCN thấy | Mặc định khi tạo |
+| `UPCOMING` | Coming soon | Theo lịch giai đoạn |
+| `ONGOING` | Onsite, đang diễn ra | Theo lịch giai đoạn |
+| `COMPLETED` | Đã kết thúc | Theo lịch giai đoạn |
+| `CANCELLED` | Đã hủy | HR/BCN bấm Hủy |
+
+**Lưu trữ:**
+- Bảng sự kiện chỉ lưu trạng thái do người bấm: `DRAFT`, `PUBLISHED` (đã công bố), `CANCELLED`.
+- Mỗi sự kiện có danh sách **giai đoạn** (`event_phases`), mỗi giai đoạn gồm:
+  - `name`: tên tự đặt để hiển thị ("Coming soon", "Check-in", "Biểu diễn", "Done"…).
+  - `starts_at`: giờ bắt đầu giai đoạn.
+  - `kind`: loại hệ thống, một trong `UPCOMING`, `ONGOING`, `COMPLETED`. Nghiệp vụ chỉ dựa vào `kind`, không dựa vào `name`.
+
+**Cách tính trạng thái** (tính mỗi lần đọc, không cần job chạy nền):
+- `DRAFT` hoặc `CANCELLED` → trả về đúng giá trị đó.
+- `PUBLISHED` → giai đoạn hiện tại là giai đoạn có `starts_at` lớn nhất mà `≤ now`; trạng thái = `kind` của giai đoạn đó, kèm `name` để hiển thị. Trước mốc của giai đoạn đầu tiên thì coi như đang ở giai đoạn đầu tiên.
+- Thời gian bắt đầu sự kiện = `starts_at` của giai đoạn `ONGOING` đầu tiên; thời gian kết thúc = `starts_at` của giai đoạn `COMPLETED` đầu tiên.
+
+**Ràng buộc khi lưu lịch** (sai → báo lỗi):
+- `starts_at` tăng dần, không trùng nhau.
+- `kind` đi đúng thứ tự `UPCOMING → ONGOING → COMPLETED`; nhiều giai đoạn liên tiếp có thể cùng `kind`.
+- Có ít nhất một giai đoạn `ONGOING` và một giai đoạn `COMPLETED`.
+- Phải có lịch hợp lệ mới được công bố.
+
+**Dời lịch, đổi trạng thái** (HR, BCN):
+- Thêm, xóa, đổi tên, đổi giờ các giai đoạn bất cứ lúc nào trước khi sự kiện `COMPLETED` hoặc `CANCELLED`; trạng thái tự đi theo lịch mới. Sau khi đã `COMPLETED` hoặc `CANCELLED` thì khóa lịch.
+- "Chuyển sang giai đoạn này ngay": đặt `starts_at` của giai đoạn đó = thời điểm bấm (dùng khi bắt đầu/kết thúc sớm hơn dự kiến).
+- Hủy sự kiện: chuyển sang `CANCELLED`, không quay lại được.
+- Không lưu lịch sử thay đổi lịch.
+
+**Nghiệp vụ theo trạng thái:**
+- Nhận đăng ký khi sự kiện `PUBLISHED`, chưa `COMPLETED`, và đang trong thời gian mở đăng ký (12.1).
+- Check-in chỉ trong giai đoạn `ONGOING`.
+- Khi sự kiện `COMPLETED`, đăng ký `CONFIRMED` chưa check-in chuyển `NO_SHOW`.
+- Việc cần xảy ra đúng lúc đổi giai đoạn (gửi thông báo, tự chuyển `NO_SHOW` khi không ai mở trang) làm bằng job định kỳ, sau mốc MVP.
+- Giờ lưu dạng có múi giờ (`timestamptz`), hiển thị theo giờ Việt Nam (`Asia/Ho_Chi_Minh`).
 
 Sau khi sự kiện hoàn thành:
 - Lưu sự kiện vào lịch sử CLB.
