@@ -3,6 +3,9 @@ package feveid.event.service.impl;
 import feveid.common.exception.BadRequestException;
 import feveid.common.exception.ConflictException;
 import feveid.common.exception.NotFoundException;
+import feveid.common.upload.ImageStorage;
+import feveid.common.upload.ImageStorageException;
+import feveid.common.upload.ImageValidator;
 import feveid.event.dto.EventRequest;
 import feveid.event.dto.EventResponse;
 import feveid.event.dto.PhaseRequest;
@@ -21,6 +24,7 @@ import feveid.event.service.EventService;
 import feveid.member.entity.Member;
 import feveid.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +32,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
@@ -35,6 +40,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final MemberRepository memberRepository;
     private final Clock clock;
+    private final ImageStorage imageStorage;
 
     @Override
     @Transactional(readOnly = true)
@@ -173,12 +179,55 @@ public class EventServiceImpl implements EventService {
         if (event.getPublication() != EventPublication.DRAFT) {
             throw new ConflictException("Chỉ xóa được bản nháp. Sự kiện đã công bố thì dùng Hủy");
         }
+        boolean hasBanner = event.getBannerUrl() != null;
         eventRepository.delete(event);  // cascade xóa luôn các giai đoạn
+        // flush: chạy câu DELETE ngay, nếu DB báo lỗi thì dừng ở đây, trước khi kịp xóa ảnh
+        eventRepository.flush();
+        if (hasBanner) {
+            try {
+                imageStorage.delete(bannerPublicId(id));
+            } catch (ImageStorageException e) {
+                // Sự kiện đã xóa xong, ảnh sót lại chỉ tốn chỗ -> ghi log, không bắt người dùng thử lại
+                log.warn("Không xóa được banner của sự kiện {} đã xóa", id, e);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public EventResponse uploadBanner(Long id, byte[] data) {
+        Instant now = clock.instant();
+        Event event = findById(id);
+        ensureScheduleEditable(event, now);
+        ImageValidator.validate(data);  // sai -> 400, chưa gửi gì lên Cloudinary
+
+        // Gọi dịch vụ bên ngoài: lỗi -> ImageStorageException (RuntimeException) -> rollback, bannerUrl giữ nguyên
+        String url = imageStorage.upload(data, bannerPublicId(id));
+        event.setBannerUrl(url);  // dirty checking: UPDATE khi commit
+        return toResponse(event, now);
+    }
+
+    @Override
+    @Transactional
+    public EventResponse deleteBanner(Long id) {
+        Instant now = clock.instant();
+        Event event = findById(id);
+        ensureScheduleEditable(event, now);
+        if (event.getBannerUrl() != null) {
+            imageStorage.delete(bannerPublicId(id));  // lỗi -> 502, DB không đổi, người dùng bấm lại được
+            event.setBannerUrl(null);
+        }
+        return toResponse(event, now);
     }
 
     private Event findById(Long id) {
         return eventRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy sự kiện"));
+    }
+
+    // Cố định theo id sự kiện: upload lại thì ghi đè đúng file cũ (không cần lưu publicId trong DB)
+    private static String bannerPublicId(Long eventId) {
+        return "feveid/events/" + eventId + "/banner";
     }
 
     private CurrentStatus statusOf(Event event, Instant now) {

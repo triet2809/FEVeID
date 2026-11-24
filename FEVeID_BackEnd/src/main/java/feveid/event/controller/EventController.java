@@ -9,10 +9,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 // API quản lý sự kiện cho HR/BCN. Trang sự kiện cho member/khách làm ở Bài 11
@@ -72,6 +75,20 @@ public class EventController {
     @Operation(summary = "Hủy sự kiện", description = "Vĩnh viễn, không mở lại được")
     public ResponseEntity<EventResponse> cancelEvent(@PathVariable Long id) {
         return ResponseEntity.ok(eventService.cancelEvent(id));
+    }
+
+    // multipart/form-data: trình duyệt gửi file dạng nhị phân trong part tên "file" (FormData ở frontend)
+    @PutMapping(value = "/{id}/banner", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Tải ảnh banner", description = "JPG, PNG hoặc WebP, tối đa 10MB. Tải lại thì thay ảnh cũ")
+    public ResponseEntity<EventResponse> uploadBanner(@PathVariable Long id,
+                                                      @RequestParam("file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(eventService.uploadBanner(id, file.getBytes()));
+    }
+
+    @DeleteMapping("/{id}/banner")
+    @Operation(summary = "Xóa ảnh banner")
+    public ResponseEntity<EventResponse> deleteBanner(@PathVariable Long id) {
+        return ResponseEntity.ok(eventService.deleteBanner(id));
     }
 
     @DeleteMapping("/{id}")
