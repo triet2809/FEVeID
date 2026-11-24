@@ -22,7 +22,7 @@ Nguyên tắc: làm theo lát dọc (migration → entity → API → test → m
 - [x] `terms` (kỳ học Fall/Spring/Summer, gian hàng đổi quà mở/đóng thủ công, kỳ hiện tại theo `Clock`)
 - [ ] Module upload file dùng chung (Cloudinary / Cloudflare R2)
 - [x] Test tích hợp với Testcontainers
-- [ ] Khởi tạo frontend React (login + layout theo role)
+- [x] Khởi tạo frontend React (login + layout theo role; JWT trong cookie httpOnly + CSRF)
 
 ## Giai đoạn 1 – Sự kiện miễn phí trọn vòng
 CRUD sự kiện, trang sự kiện công khai, đăng ký (nội bộ + khách), check-in QR, Finalize sự kiện (HR chốt tổ chức/hỗ trợ), sổ cái điểm.

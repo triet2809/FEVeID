@@ -53,7 +53,7 @@ React 19 + TypeScript + Vite, Ant Design 6, TanStack Query 5, React Router 7. Fo
 
 - Chạy (trong `FEVeID_FrontEnd/`, **không** chạy npm ở gốc repo): `npm install`, `npm run dev` (http://localhost:5173, proxy `/api` → 8080), `npm run lint`, `npm run build`.
 - Gọi API chỉ qua `src/api/client.ts` (`api.get/post/...`): gửi kèm cookie, tự gắn header `X-XSRF-TOKEN` cho POST/PUT/PATCH/DELETE, lỗi → `HttpError`.
-- Kiểu dữ liệu API sinh từ OpenAPI: chạy backend rồi `npm run gen:api` → `src/api/schema.d.ts` (commit file này, không sửa tay). `openapi-typescript` chưa khai báo hỗ trợ TS 6 nên dùng `overrides` trong `package.json`.
+- Kiểu dữ liệu API sinh từ OpenAPI: chạy backend rồi `npm run gen:api` → `src/api/schema.d.ts` (commit file này, không sửa tay). Đổi DTO backend → sinh lại trong cùng PR; field luôn có giá trị đánh dấu `@Schema(requiredMode = REQUIRED)` để kiểu TS không có `?`. `openapi-typescript` chưa khai báo hỗ trợ TS 6 nên dùng `overrides` trong `package.json`.
 - Đăng nhập: JWT trong cookie httpOnly `access_token` (JS không đọc được), lấy thông tin + role qua `GET /api/members/me`. Khi deploy frontend và `/api` phải chung domain.
 
 Thiết kế (chốt 20/11/2026):
