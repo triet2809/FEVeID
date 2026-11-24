@@ -62,11 +62,18 @@ export function LoginPage() {
 
         {/* Lỗi từ backend: "Email hoặc mật khẩu không đúng", "Tài khoản bị khóa..." (GlobalExceptionHandler) */}
         {loginMutation.isError && (
-          <Typography.Paragraph type="danger">{errorMessage(loginMutation.error)}</Typography.Paragraph>
+          <Typography.Paragraph type="danger">
+            {errorMessage(loginMutation.error)}
+          </Typography.Paragraph>
         )}
 
         {/* isPending: đang chờ login HOẶC đang tải lại /me → khóa nút để không bấm 2 lần */}
-        <Button type="primary" htmlType="submit" loading={loginMutation.isPending} block>
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={loginMutation.isPending}
+          block
+        >
           Đăng nhập
         </Button>
       </Form>
