@@ -164,12 +164,12 @@ Ban Chủ Nhiệm có quyền quản trị cao nhất đối với hoạt độn
 - Xóa hoặc hủy sự kiện.
 - Thiết lập thời gian sự kiện.
 - Thiết lập thời gian đăng ký.
-- Thiết lập ban phụ trách.
+- Gán người phụ trách (leader) cho sự kiện sau khi chọn được team.
 - Thiết lập số lượng thành viên.
 - Công bố, hủy sự kiện; lập và chỉnh lịch các giai đoạn của sự kiện (xem 6.1).
 - Xem danh sách thành viên quan tâm sự kiện.
 - Xem danh sách thành viên đăng ký tham gia.
-- Phân công thành viên hoặc ban cho sự kiện.
+- Phân công thành viên (từ nhiều ban) vào team tổ chức sự kiện.
 
 ### 5.3. Event Proposal Approval
 - Xem các Event Proposal mới.
@@ -205,8 +205,8 @@ Mỗi sự kiện cần quản lý:
 - Địa điểm.
 - Lịch các giai đoạn (xem 6.1); thời gian bắt đầu/kết thúc suy ra từ lịch này.
 - Thời gian mở/đóng đăng ký (xem 12.1), tách riêng với lịch giai đoạn.
-- Người phụ trách.
-- Ban phụ trách.
+- Người phụ trách (chốt 25/11/2026): sự kiện BCN tạo → leader sự kiện, BCN gán sau khi chọn được team; sự kiện tự phát (từ Event Proposal) → người gửi kế hoạch. Có thể để trống lúc mới tạo.
+- Sự kiện thuộc về cả CLB, **không thuộc ban nào** (CLB có Ban Kế hoạch, Ban Truyền thông, Ban Thực hiện; thành viên các ban cùng tham gia team tổ chức).
 - Số lượng thành viên dự kiến.
 - Trạng thái sự kiện.
 - Danh sách thành viên tham gia.

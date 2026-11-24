@@ -77,10 +77,15 @@ Ngày 24/11: xong Bài 9 (gồm cả việc đổi sang cookie httpOnly, ngoài 
 
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-24 (trên laptop Windows)_
+_Cập nhật: 2026-11-25 (trên laptop Windows)_
 
-- **Đã xong Bài 1–9**, tất cả nằm trên `master` (#33). Không có nhánh dở dang.
-- **Tiếp theo: Bài 10, CRUD sự kiện + upload ảnh** (chủ dự án mở ở phiên mới). Việc đầu tiên:
+- **Bài 10 đang làm.** Chia: 10.1 logic thuần · 10.2 CRUD · 10.3 upload banner (**Cloudinary**, chốt 24/11) · 10.4 frontend.
+  - **10.1 xong (PR #36):** `EventStatusCalculator.compute` + `PhaseScheduleValidator.validate` (`feveid/event/schedule/`), chủ dự án viết lõi theo code mẫu (xin code mẫu thay vì tự viết từ gợi ý). Thêm `BadRequestException` → 400. Chốt thêm: giai đoạn đầu tiên phải là `UPCOMING` (requirements 6.1).
+  - **10.2 trên nhánh `feat/event-crud`** (chưa merge): V8 `events` + `event_phases`, `/api/events` chỉ HR/PRESIDENT (trang member/guest ở Bài 11), `PUT /{id}/phases` thay cả lịch, `start-now`, `publish` (cần lịch + giờ mở/đóng đăng ký, đóng ≤ kết thúc, chưa kết thúc), `cancel` (vĩnh viễn), `DELETE` chỉ DRAFT; `capacity` null = không giới hạn. `EventTest` 27 test; tổng 195 test xanh; `schema.d.ts` đã sinh lại.
+  - **Chốt 25/11:** sự kiện thuộc cả CLB, **không có ban phụ trách** (CLB có Ban Kế hoạch, Truyền thông, Thực hiện). `owner` = leader do BCN gán sau khi chọn team, hoặc người gửi Event Proposal; được để trống. Đã bỏ `department_id` khỏi V8 (V8 chưa merge; DB dev laptop đã drop bảng + xóa dòng V8 trong `flyway_schema_history` rồi áp lại). Mac mini chưa chạy V8 nên không bị.
+  - Câu hỏi kiểm tra 10.1 + 10.2: chủ dự án nhờ Claude trả lời hộ (25/11) → lần sau hỏi lại ngắn về `@Transactional` rollback và dirty checking, LAZY ngoài transaction.
+- **Tiếp theo:** review + merge PR `feat/event-crud`, rồi 10.3 (chủ dự án tự tạo tài khoản Cloudinary, không gửi key vào chat).
+- Ghi chú cũ khi bắt đầu Bài 10:
   - Đọc `requirements.md` mục 2.4, 5.2, 6, 6.1 (sự kiện). Trạng thái: `DRAFT → UPCOMING → ONGOING → COMPLETED` (+ `CANCELLED`), chốt 24/11: UPCOMING/ONGOING/COMPLETED tính từ lịch giai đoạn `event_phases`, không dùng job.
   - Upload ảnh là **kiến thức mới** → loại 2 của mentor mode: giải thích + thử nhỏ trước, viết test trước, chủ dự án tự viết phần lõi. Cần chốt nơi lưu ảnh (Cloudinary hay Cloudflare R2, xem `roadmap.md` "Module upload file dùng chung").
   - CRUD sự kiện là mẫu đã quen → Claude viết, chủ dự án trả lời câu hỏi kiểm tra trước khi merge. Nhớ thêm `@Schema(requiredMode = REQUIRED)` cho DTO mới và chạy `npm run gen:api` trong cùng PR.

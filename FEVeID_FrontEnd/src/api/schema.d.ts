@@ -46,6 +46,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Xem một sự kiện */
+        get: operations["getEvent"];
+        /**
+         * Sửa thông tin sự kiện
+         * @description Bị khóa khi đã COMPLETED hoặc CANCELLED
+         */
+        put: operations["updateEvent"];
+        post?: never;
+        /**
+         * Xóa bản nháp
+         * @description Chỉ xóa được khi DRAFT; đã công bố thì dùng Hủy
+         */
+        delete: operations["deleteEvent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}/phases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Thay cả lịch giai đoạn
+         * @description Giai đoạn đầu UPCOMING, giờ tăng dần, kind không đi lùi, có ONGOING và COMPLETED
+         */
+        put: operations["replacePhases"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments/{id}": {
         parameters: {
             query?: never;
@@ -85,6 +130,90 @@ export interface paths {
          * @description Không được chồng lên kỳ khác; gian hàng mặc định đóng
          */
         post: operations["createTerm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Danh sách sự kiện
+         * @description Mới tạo trước, gồm cả bản nháp và đã hủy
+         */
+        get: operations["getEvents"];
+        put?: never;
+        /**
+         * Tạo sự kiện
+         * @description Tạo ở trạng thái DRAFT, chưa có lịch giai đoạn
+         */
+        post: operations["createEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Công bố sự kiện
+         * @description Cần lịch giai đoạn + giờ mở/đóng đăng ký
+         */
+        post: operations["publishEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}/phases/{phaseId}/start-now": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Chuyển sang giai đoạn này ngay
+         * @description Đặt giờ bắt đầu giai đoạn = bây giờ
+         */
+        post: operations["startPhaseNow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hủy sự kiện
+         * @description Vĩnh viễn, không mở lại được
+         */
+        post: operations["cancelEvent"];
         delete?: never;
         options?: never;
         head?: never;
@@ -386,6 +515,74 @@ export interface components {
             /** Format: date */
             startDate?: string;
         };
+        EventRequest: {
+            name: string;
+            description?: string;
+            location?: string;
+            /** @enum {string} */
+            visibility: "INTERNAL" | "PUBLIC";
+            /** Format: int32 */
+            capacity?: number;
+            /** Format: date-time */
+            registrationOpensAt?: string;
+            /** Format: date-time */
+            registrationClosesAt?: string;
+            /** Format: int64 */
+            ownerMemberId?: number;
+            registrationWindowComplete?: boolean;
+            registrationWindowOrdered?: boolean;
+        };
+        EventResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            description?: string;
+            bannerUrl?: string;
+            location?: string;
+            /** @enum {string} */
+            visibility: "INTERNAL" | "PUBLIC";
+            /** @enum {string} */
+            publication: "DRAFT" | "PUBLISHED" | "CANCELLED";
+            /** @enum {string} */
+            status: "DRAFT" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
+            currentPhaseName?: string;
+            /** Format: date-time */
+            startsAt?: string;
+            /** Format: date-time */
+            endsAt?: string;
+            /** Format: int32 */
+            capacity?: number;
+            /** Format: date-time */
+            registrationOpensAt?: string;
+            /** Format: date-time */
+            registrationClosesAt?: string;
+            owner?: components["schemas"]["OwnerRef"];
+            phases: components["schemas"]["PhaseResponse"][];
+        };
+        OwnerRef: {
+            /** Format: int64 */
+            id: number;
+            fullName: string;
+        };
+        PhaseResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** @enum {string} */
+            kind: "UPCOMING" | "ONGOING" | "COMPLETED";
+        };
+        PhaseRequest: {
+            name: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** @enum {string} */
+            kind: "UPCOMING" | "ONGOING" | "COMPLETED";
+        };
+        PhaseScheduleRequest: {
+            phases: components["schemas"]["PhaseRequest"][];
+        };
         DepartmentRequest: {
             name: string;
             description?: string;
@@ -556,6 +753,100 @@ export interface operations {
             };
         };
     };
+    getEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"];
+                };
+            };
+        };
+    };
+    updateEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"];
+                };
+            };
+        };
+    };
+    deleteEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    replacePhases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PhaseScheduleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"];
+                };
+            };
+        };
+    };
     getDepartmentById: {
         parameters: {
             query?: never;
@@ -646,6 +937,117 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TermResponse"];
+                };
+            };
+        };
+    };
+    getEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"][];
+                };
+            };
+        };
+    };
+    createEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"];
+                };
+            };
+        };
+    };
+    publishEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"];
+                };
+            };
+        };
+    };
+    startPhaseNow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                phaseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"];
+                };
+            };
+        };
+    };
+    cancelEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"];
                 };
             };
         };
