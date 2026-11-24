@@ -52,7 +52,7 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 7 | `departments` + `department_memberships` (7.1 CRUD ban, 7.2 gán/chuyển ban + chức vụ, 7.3 phân quyền Trưởng ban) | ✅ PR #22, #23, #24 |
 | 8 | `terms` (8.1 CRUD + mở/đóng gian hàng, 8.2 kỳ hiện tại + `Clock` + lọc gian hàng đang mở) | ✅ PR #25, #26 |
 | 8.5 | Học nhanh TypeScript + React (A: TS; B1–B4: component, state, useEffect, cập nhật dữ liệu; C1: React Router; C2: TanStack Query; C3: Ant Design) | ✅ 23/11 (playground ngoài repo) |
-| 9 | Khởi tạo React (login + layout theo role); trước đó học nhanh React/TS khoảng 10h | |
+| 9 | Khởi tạo React (9.1 role trong `/me`, 9.2 JWT trong cookie httpOnly + CSRF, 9.3 khung `FEVeID_FrontEnd` + CI frontend, 9.4 login + layout/menu theo role) | ✅ PR #30, #31, #32, #33 |
 | 10 | CRUD sự kiện + upload ảnh | |
 | 11 | Trang sự kiện công khai + đăng ký | |
 | 12 | Check-in + sổ cái điểm | |
@@ -73,36 +73,56 @@ Ngày 19/11: xong Bài 7 và Bài 8, đúng kế hoạch mới (tuần 3 = Bài 
 
 Ngày 23/11: xong 8.5 (TS/React, lâu hơn dự kiến vì chủ dự án hoàn toàn mới với frontend). Bài 9 bắt đầu tuần 4 (24/11); MVP (Bài 14) dự kiến lùi về khoảng 5–8/12.
 
+Ngày 24/11: xong Bài 9 (gồm cả việc đổi sang cookie httpOnly, ngoài kế hoạch). Đúng kế hoạch mới: MVP khoảng 5–8/12.
+
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-23 (trên laptop Windows)_
+_Cập nhật: 2026-11-24 (trên laptop Windows)_
 
-- **Đã xong Bài 7** (đã nằm trên `master`):
-  - PR #22: CRUD ban. `GET /api/departments`, `GET /api/departments/{id}` công khai (`permitAll` chỉ cho method GET); `POST`/`PUT` chỉ PRESIDENT; tên ban unique không phân biệt hoa thường (`LOWER(name)`) → trùng thì 409. Chưa làm xóa ban.
-  - PR #23: `department_memberships` (V6). `end_date IS NULL` = đang giữ; chuyển ban / đổi chức vụ = đóng dòng cũ + mở dòng mới (có lịch sử cho Personal Journey). Partial unique index: mỗi member một ban, mỗi ban một `LEADER`. `PUT /api/members/{id}/department` (HR, idempotent), `DELETE` (rút khỏi ban), `GET /api/departments/{id}/members` (Trưởng → Phó → Thành viên, rồi theo tên). Member bị Disqualify → đóng membership.
-  - PR #24: bean `@departmentAccess` (`isManagerOf`, `isManagerOfMember`). Trưởng ban **và Phó ban** xem được danh sách và hồ sơ thành viên ban mình; ban khác, ban không tồn tại, cựu Trưởng ban → 403. Gán ban vẫn chỉ HR. Luật "chức vụ nào là quản lý" nằm ở `DepartmentPosition.isManager()`.
-- **Bài 8.1 xong** (PR #25): bảng `terms` (V7) gồm `name`, `start_date`, `end_date`, `shop_open`. Ràng buộc `EXCLUDE USING gist (daterange(start_date, end_date, '[]') WITH &&)` chặn 2 kỳ chồng nhau ở DB; service kiểm tra trước để trả 409. `@AssertTrue isDateRangeValid()` trong `TermRequest` kiểm tra chéo ngày. API: `GET /api/terms`, `GET /api/terms/{id}` (đã đăng nhập), `POST`/`PUT` (HR, PRESIDENT), `PATCH /api/terms/{id}/shop` body `{"open": true}` (idempotent).
-- **Nghiệp vụ đã chốt (18/11)**, đã ghi vào `requirements.md` mục 11.2 và `CLAUDE.md`: kỳ = kỳ học Fall/Spring/Summer, điểm tính riêng; mỗi kỳ một gian hàng, HR mở/đóng thủ công; một buổi tổng kết có thể mở cùng lúc gian hàng của nhiều kỳ. Có buổi tổng kết kiêm **kết nạp thành viên mới** (CTV → ACTIVE hàng loạt) → nhớ khi làm tuyển CTV.
-- **Bài 8.2 xong** (PR #26): bean `Clock` trong `common/config/TimeConfig` (`CLUB_ZONE = Asia/Ho_Chi_Minh`); service lấy ngày bằng `LocalDate.now(clock)`, test thay bằng `@MockitoBean Clock` (`CurrentTermTest`, có case 00:30 ngày 01/01 giờ VN để bắt lỗi dùng nhầm UTC). `@Query` JPQL đầu tiên: `TermRepository.findContaining(date)`. `GET /api/terms/current` (không có kỳ → 404), `GET /api/terms?shopOpen=true|false`.
-- **Thiết kế frontend đã chốt (20/11)**, ghi ở `CLAUDE.md` mục Frontend: nhiều hiệu ứng chỉ ở khu công khai (tham khảo game.kyucdisan.com: Next.js + video nền + GSAP, font Alegreya + Be Vietnam Pro), khu nội bộ dùng Ant Design gọn; làm hiệu ứng sau MVP (Bài 14.5); chủ dự án tự thiết kế, CLB đã có tài nguyên.
-- **Bài 8.5 xong (20–23/11).** Playground `D:\react-playground` (laptop, ngoài repo, không commit): Vite + React 19 + TS, react-router 7, @tanstack/react-query 5 (+ devtools), antd 6. Có login (Form antd) → lưu token `localStorage` (`auth.ts`), `RequireAuth` + `AppLayout` (Layout antd), `/terms` (Table + Switch mở/đóng gian hàng qua `useMutation` + `setQueryData` cập nhật cả `["terms"]` lẫn `["terms", id]`), `/terms/:id`, `/about` công khai, 404; Vite proxy `/api` → 8080; `hooks/useLogout` (xóa token + `queryClient.clear()`). Các bản trước/sau của từng phần lưu ở `src/learn/*-truoc-C*.tsx.txt`.
-  - Đã hiểu: state là bản sao trong bộ nhớ trình duyệt (mất khi F5) còn DB là bản thật; React chỉ vẽ lại khi set giá trị khác tham chiếu (đã tự thấy lỗi khi sửa trực tiếp mảng); dữ liệu suy ra được thì không lưu thành state; `<Link>` không tải lại trang; frontend chặn (RequireAuth, rules của Form) chỉ để trải nghiệm, bảo mật thật ở backend.
-  - Còn yếu: đọc vào bên trong file để biết nó làm gì (câu "đã đăng nhập vào /login thì sao" trả lời sai), thứ tự các bước khi thêm tính năng, đọc đề "thêm" vs "thay" vs "chuyển" (đã 3 lần copy thay vì cắt / thay thay vì thêm / thêm import trùng). Hay chạy `npm` nhầm ở `D:\FEVeID` (tạo `package.json`, `package-lock.json`, `node_modules` ở gốc repo → xóa, không commit).
-- **Màu chủ đạo CLB tạm dùng `#7E00B2`** (tím; đo từ ảnh chụp vải áo, có thể lệch) → hỏi người thiết kế lấy mã gốc. Font: Be Vietnam Pro.
-- **Tiếp theo: Bài 9**, khởi tạo `FEVeID_FrontEnd` trong repo theo đúng stack của playground (+ React Hook Form/Zod, API client sinh từ OpenAPI). Cần quyết khi bắt đầu: lấy role người dùng để hiện layout theo role (login hiện chỉ trả `accessToken` → thêm role vào JWT/response hoặc gọi `GET /api/members/me`); cách lưu token (localStorage vs cookie httpOnly); CORS khi deploy.
-- **Bài học trong các phiên 17–19/11:**
-  - `@PreAuthorize` gọi bean (`@departmentAccess.isManagerOf(#departmentId, authentication.name)`): tên `#...` phải trùng tên tham số Java. Trả 403 (không phải 404) cho ban không tồn tại để người ngoài không dò được.
-  - Self-invocation: gọi method trong cùng class thì không đi qua proxy → `@Transactional`/`@Cacheable` của method được gọi bị bỏ qua.
-  - `@NotBlank` chỉ dùng cho `String`; gắn vào `LocalDate` → `UnexpectedTypeException` (500). Jackson đổi `""`/`"   "` thành `null` cho ngày, nên `@NotNull` là đủ; sai định dạng → `HttpMessageNotReadableException` → 400.
-  - Validation chéo nhiều field: `@AssertTrue` trên method `isXxx()`, nhớ trả `true` khi field null để `@NotNull` tự báo lỗi.
-  - `Boolean` (không phải `boolean`) cho field bắt buộc trong request: thiếu field → `null` → 400, thay vì ngầm là `false`.
-  - Vẫn còn: **tạo nhánh từ nhánh cũ** (PR #25, phải `git reset --soft origin/master`) → luôn chuột phải `origin/master` → Branch; **`AM` trong `git status`** = đã stage bản cũ rồi sửa tiếp → `git add -A` trước khi commit; chưa bật format khi lưu (phải nhắc 3 lần mới format; đã dọn xong trong PR #26) → bật *Actions on Save*; nhận review nhiều mục thì làm checklist kẻo sót (PR #26 sót `getTerms()` ở interface → lỗi biên dịch, IntelliJ báo "related problems" ở `TimeConfig`; xem lỗi thật ở Problems → Project Errors); hay bỏ qua bước dự đoán / câu hỏi kiểm tra. Đã trả lời 3 câu của 8.1: câu 2 sai (test bị chặn ở `@Valid` thì không kiểm tra được repository; Spring Data gán tham số theo vị trí), câu 3 chưa phân biệt checked/unchecked exception và chưa biết NPE trong validator → `ValidationException` → 500. 2 câu của 8.2 (UTC, bỏ endpoint `/current`) chưa trả lời.
-- **Còn treo:**
-  - HR đặt mật khẩu cho member (gửi link qua email hoặc bắt đổi mật khẩu lần đầu), xem `roadmap.md`.
-  - HR có thể tự Disqualify chính mình hoặc PRESIDENT → cân nhắc chặn ở một PR `fix/`.
-  - Lịch sử đổi trạng thái thành viên (FR 4.1) cần bảng riêng; tìm kiếm theo tên (`Specification`); phân trang danh sách.
-  - Hai request tạo kỳ chồng nhau cùng lúc → DB chặn nhưng trả 500 (`DataIntegrityViolationException` chưa có handler) → xử lý khi làm shop.
-  - Khoảng trống giữa 2 kỳ: sự kiện rơi vào khoảng trống không thuộc kỳ nào → quyết định ở Bài 12 (sổ cái điểm).
+- **Đã xong Bài 1–9**, tất cả nằm trên `master` (#33). Không có nhánh dở dang.
+- **Tiếp theo: Bài 10, CRUD sự kiện + upload ảnh** (chủ dự án mở ở phiên mới). Việc đầu tiên:
+  - Đọc `requirements.md` mục 2.4, 5.2, 6 (sự kiện) và state machine `DRAFT → OPEN_REGISTRATION → UPCOMING → ONGOING → COMPLETED` (+ `CANCELLED`).
+  - Upload ảnh là **kiến thức mới** → loại 2 của mentor mode: giải thích + thử nhỏ trước, viết test trước, chủ dự án tự viết phần lõi. Cần chốt nơi lưu ảnh (Cloudinary hay Cloudflare R2, xem `roadmap.md` "Module upload file dùng chung").
+  - CRUD sự kiện là mẫu đã quen → Claude viết, chủ dự án trả lời câu hỏi kiểm tra trước khi merge. Nhớ thêm `@Schema(requiredMode = REQUIRED)` cho DTO mới và chạy `npm run gen:api` trong cùng PR.
+
+### Bài 9 đã làm gì (23–24/11)
+- **PR #30 – JWT trong cookie httpOnly** (chủ dự án chọn cookie thay vì localStorage):
+  - `POST /api/auth/login` → `204` + `Set-Cookie: access_token` (`HttpOnly; Secure; SameSite=Strict; Path=/api; Max-Age` = hạn token), body rỗng; `POST /api/auth/logout` → cookie rỗng `Max-Age=0`. Tạo cookie ở `auth/security/AuthCookies`. `JwtAuthResponse` đã xóa.
+  - `JwtAuthenticationFilter`: có header `Authorization` thì **chỉ** dùng header (không lùi về cookie), không có thì đọc cookie. Swagger/Postman/test vẫn dùng Bearer (test lấy token từ cookie trong `tokenOf()`).
+  - CSRF: `csrf.spa()` (cookie `XSRF-TOKEN` đọc được bằng JS ↔ header `X-XSRF-TOKEN`), chỉ bắt khi request dùng cookie `access_token` làm danh tính: bỏ qua `/api/auth/login`, request có header `Authorization`, request không có cookie `access_token` (ẩn danh vẫn ra 401 chứ không phải 403). GET không bị kiểm tra → **không bao giờ viết endpoint GET sửa dữ liệu**.
+  - `app.jwt.cookie-secure=${JWT_COOKIE_SECURE:true}`; `springdoc.swagger-ui.csrf.enabled=true`. Test `AuthCookieTest` (10 test: thuộc tính cookie, CSRF thiếu/sai/đúng, cookie giả, header sai không lùi về cookie, logout).
+- **PR #31** – `GET /api/members/me` trả thêm `role`.
+- **PR #32 – khung `FEVeID_FrontEnd`**: Vite 8 + React 19 + TS 6 + antd 6 + TanStack Query 5 + react-router 7 (cấu hình chép từ playground). `src/api/client.ts` là chỗ duy nhất gọi backend (`api.get/post/...`, `HttpError`, `credentials: "same-origin"`); chủ dự án tự viết `readCookie` + gắn header CSRF. Job CI `frontend-build` (`npm ci` → lint → `tsc -b` + `vite build`). `openapi-typescript` 7.13 chỉ khai báo hỗ trợ TS 5 → dùng `overrides` trong `package.json` (đã thử chạy được).
+- **PR #33 – login + layout theo role**:
+  - Frontend không giữ token nên "đã đăng nhập chưa" = kết quả `GET /api/members/me`, cache key `["me"]` (`auth/useMe.ts`; `useCurrentUser()` dùng bên trong `RequireAuth`).
+  - `RequireAuth`: đang tải → Spin; 401 → `/login` kèm `state.from`; lỗi khác → `Result` lỗi. `RequireRole` + `ROLE_GROUPS` (`auth/roles.ts`) dùng chung cho menu (`layouts/AppLayout.tsx`) và route (`App.tsx`, khu nội bộ dưới `/app`).
+  - `LoginPage`: login xong `invalidateQueries(["me"])` → `/me` 200 → `if (me.isSuccess) <Navigate>` (cũng chặn người đã đăng nhập vào `/login`). `useLogout`: gọi logout + `queryClient.clear()` + về `/login`. `main.tsx`: query nào 401 (trừ `/me`) → `resetQueries(["me"])` → về `/login`.
+  - Backend: `MemberResponse` có `@Schema(requiredMode = REQUIRED)` cho field luôn có giá trị → kiểu TS không có `?`. `src/api/schema.d.ts` đã sinh và commit.
+  - Claude đã thử trên trình duyệt (chưa đăng nhập → `/login`, validate form, sai mật khẩu → message backend); luồng đăng nhập thật do chủ dự án tự thử (đã thấy `document.cookie` chỉ có `XSRF-TOKEN`).
+- **Quyết định đã chốt (23/11):** form dùng `Form` của antd (không React Hook Form/Zod); API client = `openapi-typescript` (chỉ sinh kiểu) + `fetch` tự viết; khi deploy frontend và `/api` **chung domain** (nginx phục vụ React + proxy `/api`) nên không cần CORS; test frontend (Playwright luồng login/logout) để sau MVP.
+- Đã gỡ extension Codacy (VS Code) + `~/.codacy` + `.codacy/` trong playground (Codacy sinh file luật AI `.github/instructions/`).
+
+### Còn treo
+- **Thêm `frontend-build` vào required checks** của ruleset "protect master" (hiện chỉ bắt `build` backend → PR vẫn merge được khi CI frontend đỏ). Chủ dự án tự làm trên GitHub.
+- **Quy tắc:** đổi DTO backend → chạy backend rồi `npm run gen:api` trong cùng PR (CI không phát hiện `schema.d.ts` cũ). DTO khác ngoài `MemberResponse` vẫn toàn field `?` → thêm `@Schema(requiredMode = REQUIRED)` khi frontend bắt đầu dùng.
+- `/me` chưa có ban + chức vụ → menu chưa có mục cho Trưởng/Phó ban; làm khi có trang quản lý ban.
+- JWT không thu hồi được khi logout (stateless; chỉ xóa cookie). Chấp nhận cho MVP.
+- **Mac mini:** chưa thử frontend. Safari có thể không lưu cookie `Secure` trên `http://localhost` → nếu đăng nhập xong vẫn bị đá về `/login`, đặt `JWT_COOKIE_SECURE=false` trong `.env` (hoặc dùng Chrome).
+- Màu chủ đạo `#7E00B2` (`src/theme.ts`) là tạm, đo từ ảnh áo CLB → hỏi người thiết kế lấy mã gốc.
+- Buổi tổng kết kỳ có thể kiêm **kết nạp thành viên mới** (CTV → ACTIVE hàng loạt) → nhớ khi làm tuyển CTV.
+- Từ trước: HR đặt mật khẩu cho member (`roadmap.md`); HR tự Disqualify chính mình/PRESIDENT; lịch sử đổi trạng thái thành viên; tìm kiếm + phân trang; 2 request tạo kỳ chồng nhau cùng lúc → 500 (`DataIntegrityViolationException`); khoảng trống giữa 2 kỳ (quyết ở Bài 12).
+
+### Ghi chú về cách học (cập nhật 24/11)
+- Bài 9 chủ dự án xin code mẫu cho phần frontend ("không rõ code FE") → với frontend, đưa code mẫu có comment so sánh Java ngay, rồi hỏi câu kiểm tra.
+- Câu trả lời kiểm tra Bài 9: nhầm "trình duyệt tự gửi cookie" với "JS tự gắn header" (CSRF); tưởng GET thiếu CSRF → 401 (thật ra 200); tưởng quên `queryClient.clear()` thì "còn token, báo 401" (thật ra lộ dữ liệu người trước, không có lỗi gì). Đúng: thêm trang mới = route + trang + mục menu. Hay muốn bỏ qua câu hỏi kiểm tra ("tôi hiểu rồi, qua tiếp") → vẫn hỏi ngắn, ghi lại câu chưa trả lời.
+- Vẫn chạy `npm` ở gốc repo (lần này `npm run dev` "không chạy được" vì đứng ở `D:\FEVeID`) → luôn nhắc `cd FEVeID_FrontEnd`, dấu nhắc phải là `PS D:\FEVeID\FEVeID_FrontEnd>`.
+- Đã bật format khi lưu (commit `style: format LoginPage`).
+
+### Bài học kỹ thuật cũ vẫn cần nhớ (17–19/11)
+- `@PreAuthorize` gọi bean: tên `#...` phải trùng tên tham số Java; trả 403 (không phải 404) cho ban không tồn tại.
+- Self-invocation không đi qua proxy → `@Transactional`/`@Cacheable` bị bỏ qua.
+- `@NotBlank` chỉ cho `String`; `LocalDate` dùng `@NotNull`. Validation chéo: `@AssertTrue isXxx()` trả `true` khi field null. Field bắt buộc trong request dùng `Boolean` (không `boolean`).
+- Git: tạo nhánh từ `origin/master` (không từ nhánh cũ); `AM` trong `git status` → `git add -A` trước khi commit; nhận review nhiều mục thì làm checklist.
 
 ## Cài đặt máy mới
 
@@ -113,6 +133,7 @@ Chung:
 - Postgres: `docker compose up -d` trong `FEVeID_BackEnd/`, map cổng **5433** (`application.properties` trỏ tới `localhost:5433`).
 - Run Configuration của app: env `DB_PASSWORD`, `JWT_SECRET`, và cho profile dev: `SPRING_PROFILES_ACTIVE=dev`, `DEV_HR_EMAIL`, `DEV_HR_PASSWORD`; VM option `-Duser.timezone=Asia/Ho_Chi_Minh`. Spring Boot **không tự đọc** `.env` (chỉ `docker compose` đọc); muốn dùng chung một chỗ thì bật plugin EnvFile trong Run Configuration và trỏ tới `FEVeID_BackEnd/.env`.
 - Test: `./mvnw test` (Testcontainers tự bật Postgres; cần Docker đang chạy).
+- Frontend: Node **24** + npm. Trong `FEVeID_FrontEnd/`: `npm install` (lần đầu), `npm run dev` → http://localhost:5173 (cần backend ở 8080). Không chạy npm ở gốc repo.
 
 Riêng laptop Windows:
 - `JAVA_HOME` hệ thống là JDK 21, `java` trên PATH là 1.8 → `./mvnw` ở terminal báo "release version 25 not supported" nếu không đặt `JAVA_HOME` sang JDK 25 (`C:\Users\Admin\.jdks\temurin-25.0.3`). Chạy test trong IntelliJ thì không bị.
@@ -122,11 +143,12 @@ Riêng laptop Windows:
 - Chưa cài `gh`; kiểm tra GitHub qua `curl https://api.github.com/repos/triet2809/FEVeID/...` (repo public).
 - Chạy Maven ở PowerShell: đứng trong `FEVeID_BackEnd/` rồi `$env:JAVA_HOME="C:\Users\Admin\.jdks\temurin-25.0.3"; .\mvnw.cmd test` (đứng ở gốc repo sẽ báo `./mvnw not recognized`).
 - Docker Desktop hay tự tắt (đã gặp 3 lần ngày 06–07/11) → test lỗi `Previous attempts to find a Docker environment failed`. Chạy `docker ps` trước khi test; nên bật Settings → General → *Start Docker Desktop when you sign in*. Máy còn có các container `nexus-*` của dự án khác chiếm cổng 5432.
+- `node`/`npm` trên PATH lấy từ `D:\OpenClawAI\node.exe` (v24.16).
 - IntelliJ IDEA Ultimate 2026.2: có JPA Buddy (Ctrl+Shift+A → "Entities from DB"), plugin EnvFile đã cài.
 
 Riêng Mac mini:
 - Có sẵn `openssl` để tạo `JWT_SECRET`: `openssl rand -base64 48`.
 - Nếu `./mvnw` báo không có quyền chạy: `chmod +x mvnw` (file đã có mode 100755 trong git).
-- Đã setup: Temurin 25 (arm64, là `java` mặc định), Docker Desktop, `.env`, container `feveid-postgres` (volume `feveid_backend_feveid-pgdata`), Sourcetree, `gh` (đã đăng nhập, protocol https).
+- Đã setup: Temurin 25 (arm64, là `java` mặc định), Docker Desktop, `.env`, container `feveid-postgres` (volume `feveid_backend_feveid-pgdata`), Sourcetree, `gh` (đã đăng nhập, protocol https). **Chưa kiểm tra Node** (frontend cần v24: `node -v`).
 - Repo ở `/Users/mac/FEVeID/FEVeID`. `./mvnw` và `docker compose` phải chạy trong `FEVeID_BackEnd/`; lệnh git chạy ở đâu trong repo cũng được.
 - Máy **không có SSH key** → remote `origin` phải dùng HTTPS (`https://github.com/triet2809/FEVeID.git`). Nếu Sourcetree/git báo `Permission denied (publickey)` thì remote đang là `ssh://...`: đổi lại sang HTTPS.
