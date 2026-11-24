@@ -239,6 +239,7 @@ Trạng thái hiển thị của sự kiện là một trong 5 giá trị:
 **Ràng buộc khi lưu lịch** (sai → báo lỗi):
 - `starts_at` tăng dần, không trùng nhau.
 - `kind` đi đúng thứ tự `UPCOMING → ONGOING → COMPLETED`; nhiều giai đoạn liên tiếp có thể cùng `kind`.
+- Giai đoạn đầu tiên phải là `UPCOMING` (chốt 24/11/2026), để trước mốc đầu tiên sự kiện luôn ở trạng thái `UPCOMING` và không mở check-in sớm.
 - Có ít nhất một giai đoạn `ONGOING` và một giai đoạn `COMPLETED`.
 - Phải có lịch hợp lệ mới được công bố.
 
