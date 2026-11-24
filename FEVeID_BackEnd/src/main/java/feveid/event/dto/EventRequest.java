@@ -25,6 +25,9 @@ public record EventRequest(
         @NotNull
         EventVisibility visibility,
 
+        // Chỉ dùng cho INTERNAL: có hiện cho khách xem không. null = không. PUBLIC thì luôn hiện
+        Boolean publiclyListed,
+
         // null = không giới hạn
         @Positive
         Integer capacity,

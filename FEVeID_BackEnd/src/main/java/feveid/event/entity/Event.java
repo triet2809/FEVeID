@@ -56,6 +56,11 @@ public class Event {
     @Builder.Default
     private EventPublication publication = EventPublication.DRAFT;
 
+    // Sự kiện INTERNAL có hiện cho khách xem không (khách vẫn không đăng ký được). PUBLIC thì luôn hiện
+    @Column(name = "publicly_listed", nullable = false)
+    @Builder.Default
+    private boolean publiclyListed = false;
+
     // null = không giới hạn
     @Column(name = "capacity")
     private Integer capacity;
@@ -85,6 +90,11 @@ public class Event {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    // Khách (chưa đăng nhập) có thấy sự kiện này trên trang công khai không, chưa xét đã công bố hay chưa
+    public boolean isVisibleToGuests() {
+        return visibility == EventVisibility.PUBLIC || publiclyListed;
+    }
 
     public List<PhaseSlot> phaseSlots() {
         return phases.stream().map(EventPhase::toSlot).toList();

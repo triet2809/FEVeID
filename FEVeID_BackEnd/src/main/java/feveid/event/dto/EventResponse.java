@@ -20,6 +20,7 @@ public record EventResponse(
         String bannerUrl,
         String location,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) EventVisibility visibility,
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) boolean publiclyListed,
         // Trạng thái do người bấm (DRAFT/PUBLISHED/CANCELLED)
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) EventPublication publication,
         // Trạng thái hiển thị, tính lúc đọc (requirements.md 6.1)
@@ -48,6 +49,7 @@ public record EventResponse(
                 event.getBannerUrl(),
                 event.getLocation(),
                 event.getVisibility(),
+                event.isPubliclyListed(),
                 event.getPublication(),
                 current.status(),
                 current.phaseName(),

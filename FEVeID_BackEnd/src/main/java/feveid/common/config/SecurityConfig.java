@@ -65,6 +65,8 @@ public class SecurityConfig {
                                 "/api/auth/logout" // token hết hạn vẫn phải đăng xuất (xóa cookie) được
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/departments", "/api/departments/*").permitAll()
+                        // Trang sự kiện cho khách: controller tự lọc theo đã đăng nhập hay chưa
+                        .requestMatchers(HttpMethod.GET, "/api/public/events", "/api/public/events/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

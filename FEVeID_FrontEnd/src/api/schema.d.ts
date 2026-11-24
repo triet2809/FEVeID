@@ -400,6 +400,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Danh sách sự kiện đã công bố
+         * @description Khách chỉ thấy sự kiện PUBLIC hoặc INTERNAL được chọn hiện công khai; thành viên đã đăng nhập thấy tất cả. Sắp diễn ra lên trước, đã kết thúc xếp sau
+         */
+        get: operations["getEvents_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Chi tiết sự kiện
+         * @description 404 nếu chưa công bố, đã hủy, hoặc khách không được xem
+         */
+        get: operations["getEvent_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/members": {
         parameters: {
             query?: never;
@@ -542,6 +582,7 @@ export interface components {
             location?: string;
             /** @enum {string} */
             visibility: "INTERNAL" | "PUBLIC";
+            publiclyListed?: boolean;
             /** Format: int32 */
             capacity?: number;
             /** Format: date-time */
@@ -560,6 +601,7 @@ export interface components {
             location?: string;
             /** @enum {string} */
             visibility: "INTERNAL" | "PUBLIC";
+            publiclyListed: boolean;
             /** @enum {string} */
             publication: "DRAFT" | "PUBLISHED" | "CANCELLED";
             /** @enum {string} */
@@ -658,6 +700,31 @@ export interface components {
         UpdateMyProfileRequest: {
             phone?: string;
             avatarUrl?: string;
+        };
+        PublicEventResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            description?: string;
+            bannerUrl?: string;
+            location?: string;
+            /** @enum {string} */
+            visibility: "INTERNAL" | "PUBLIC";
+            /** @enum {string} */
+            status: "DRAFT" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
+            currentPhaseName: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            /** Format: int32 */
+            capacity?: number;
+            /** Format: date-time */
+            registrationOpensAt: string;
+            /** Format: date-time */
+            registrationClosesAt: string;
+            registrationOpen: boolean;
+            phases: components["schemas"]["PhaseResponse"][];
         };
         DepartmentMemberResponse: {
             /** Format: int64 */
@@ -1342,6 +1409,51 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TermResponse"];
+                };
+            };
+        };
+    };
+    getEvents_1: {
+        parameters: {
+            query?: {
+                status?: "DRAFT" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
+                q?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PublicEventResponse"][];
+                };
+            };
+        };
+    };
+    getEvent_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PublicEventResponse"];
                 };
             };
         };
