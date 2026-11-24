@@ -64,7 +64,10 @@ async function apiFetch<T>(
   body?: unknown,
 ): Promise<T> {
   const headers = new Headers();
-  if (body !== undefined) {
+  // FormData (upload file): KHÔNG tự đặt Content-Type. Trình duyệt tự ghi
+  // "multipart/form-data; boundary=----abc" (boundary = chuỗi ngăn cách các phần), tự đặt thì thiếu boundary → backend đọc lỗi
+  const isFormData = body instanceof FormData;
+  if (body !== undefined && !isFormData) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -79,7 +82,7 @@ async function apiFetch<T>(
   const res = await fetch(path, {
     method,
     headers,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
     // Gửi kèm cookie (access_token, XSRF-TOKEN). "same-origin" là mặc định, ghi ra cho rõ ý:
     // chỉ gửi cookie khi gọi cùng domain với trang → khi deploy, frontend và /api phải chung domain.
     credentials: "same-origin",
@@ -101,4 +104,6 @@ export const api = {
   put: <T>(path: string, body?: unknown) => apiFetch<T>(path, "PUT", body),
   patch: <T>(path: string, body?: unknown) => apiFetch<T>(path, "PATCH", body),
   delete: <T>(path: string) => apiFetch<T>(path, "DELETE"),
+  // Gửi file: form.append("file", file) rồi api.upload(path, form). Vẫn đi qua apiFetch nên vẫn có CSRF
+  upload: <T>(path: string, form: FormData, method: "POST" | "PUT" = "PUT") => apiFetch<T>(path, method, form),
 };

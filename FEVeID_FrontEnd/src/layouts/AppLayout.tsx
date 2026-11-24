@@ -1,5 +1,6 @@
 import {
   CalendarOutlined,
+  CarryOutOutlined,
   DashboardOutlined,
   LogoutOutlined,
   TeamOutlined,
@@ -27,7 +28,15 @@ const MENU: MenuEntry[] = [
   { path: "/app/profile", label: "Hồ sơ của tôi", icon: <UserOutlined />, roles: ROLE_GROUPS.all },
   { path: "/app/members", label: "Thành viên", icon: <TeamOutlined />, roles: ROLE_GROUPS.memberManagers },
   { path: "/app/terms", label: "Kỳ học", icon: <CalendarOutlined />, roles: ROLE_GROUPS.memberManagers },
+  { path: "/app/events", label: "Sự kiện", icon: <CarryOutOutlined />, roles: ROLE_GROUPS.eventManagers },
 ];
+
+// Mục menu ứng với URL hiện tại: /app/events/12 vẫn tô đậm "Sự kiện".
+// Lấy mục có path DÀI NHẤT là tiền tố của URL (nếu không, "/app" sẽ khớp với mọi trang)
+function selectedMenuKey(pathname: string): string {
+  const matches = MENU.filter((entry) => pathname === entry.path || pathname.startsWith(`${entry.path}/`));
+  return matches.reduce((best, entry) => (entry.path.length > best.length ? entry.path : best), "/app");
+}
 
 // Khung chung cho mọi trang đã đăng nhập: menu bên trái, thanh trên (tên + role + đăng xuất), nội dung ở giữa
 export function AppLayout() {
@@ -53,7 +62,7 @@ export function AppLayout() {
         <Menu
           mode="inline"
           items={items}
-          selectedKeys={[location.pathname]} // tô đậm mục đúng với URL hiện tại
+          selectedKeys={[selectedMenuKey(location.pathname)]} // tô đậm mục đúng với URL hiện tại
           onClick={({ key }) => navigate(key)} // key chính là path
         />
       </Layout.Sider>

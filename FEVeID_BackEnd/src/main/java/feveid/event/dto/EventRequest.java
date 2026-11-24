@@ -1,6 +1,7 @@
 package feveid.event.dto;
 
 import feveid.event.enums.EventVisibility;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -41,11 +42,14 @@ public record EventRequest(
         }
     }
 
+    // @JsonIgnore: đây là luật kiểm tra, không phải dữ liệu -> không hiện thành field trong OpenAPI/kiểu TS
+    @JsonIgnore
     @AssertTrue(message = "Phải nhập cả giờ mở và giờ đóng đăng ký, hoặc để trống cả hai")
     public boolean isRegistrationWindowComplete() {
         return (registrationOpensAt == null) == (registrationClosesAt == null);
     }
 
+    @JsonIgnore
     @AssertTrue(message = "Giờ đóng đăng ký phải sau giờ mở đăng ký")
     public boolean isRegistrationWindowOrdered() {
         if (registrationOpensAt == null || registrationClosesAt == null) {
