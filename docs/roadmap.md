@@ -20,7 +20,7 @@ Nguyên tắc: làm theo lát dọc (migration → entity → API → test → m
 - [x] Tách `accounts` (đăng nhập) và `members` (hồ sơ CLB, member_status: CTV/ACTIVE/INACTIVE/DISQUALIFIED)
 - [x] `departments` + `department_memberships(member, department, position, start_date, end_date)` – Department Leader là chức vụ trong ban
 - [x] `terms` (kỳ học Fall/Spring/Summer, gian hàng đổi quà mở/đóng thủ công, kỳ hiện tại theo `Clock`)
-- [ ] Module upload file dùng chung (Cloudinary / Cloudflare R2)
+- [x] Module upload file dùng chung (`common/upload`: `ImageValidator` + `ImageStorage`/Cloudinary)
 - [x] Test tích hợp với Testcontainers
 - [x] Khởi tạo frontend React (login + layout theo role; JWT trong cookie httpOnly + CSRF)
 
