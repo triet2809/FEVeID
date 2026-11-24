@@ -550,8 +550,6 @@ export interface components {
             registrationClosesAt?: string;
             /** Format: int64 */
             ownerMemberId?: number;
-            registrationWindowComplete?: boolean;
-            registrationWindowOrdered?: boolean;
         };
         EventResponse: {
             /** Format: int64 */

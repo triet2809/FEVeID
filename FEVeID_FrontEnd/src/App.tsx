@@ -4,6 +4,9 @@ import { RequireRole } from "./auth/RequireRole";
 import { ROLE_GROUPS } from "./auth/roles";
 import { AppLayout } from "./layouts/AppLayout";
 import { DashboardPage } from "./pages/DashboardPage";
+import { EventCreatePage } from "./pages/events/EventCreatePage";
+import { EventDetailPage } from "./pages/events/EventDetailPage";
+import { EventListPage } from "./pages/events/EventListPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -30,6 +33,14 @@ export default function App() {
           <Route element={<RequireRole roles={ROLE_GROUPS.memberManagers} />}>
             <Route path="members" element={<PlaceholderPage title="Quản lý thành viên" />} />
             <Route path="terms" element={<PlaceholderPage title="Kỳ học" />} />
+          </Route>
+
+          {/* Quản lý sự kiện: HR và Ban Chủ nhiệm. /app/events/new khớp cả "events/new" lẫn "events/:id";
+              React Router tự ưu tiên đường dẫn cố định (new) hơn đường dẫn có tham số (:id) */}
+          <Route element={<RequireRole roles={ROLE_GROUPS.eventManagers} />}>
+            <Route path="events" element={<EventListPage />} />
+            <Route path="events/new" element={<EventCreatePage />} />
+            <Route path="events/:id" element={<EventDetailPage />} />
           </Route>
         </Route>
       </Route>
