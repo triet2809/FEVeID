@@ -142,6 +142,12 @@
             <version>0.12.5</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- Lưu ảnh (banner sự kiện, sau này avatar). Bản http5 dùng Apache HttpClient 5 -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http5</artifactId>
+            <version>2.6.0</version>
+        </dependency>
     </dependencies>
 
     <build>

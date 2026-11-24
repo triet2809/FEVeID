@@ -91,6 +91,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{id}/banner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Tải ảnh banner
+         * @description JPG, PNG hoặc WebP, tối đa 10MB. Tải lại thì thay ảnh cũ
+         */
+        put: operations["uploadBanner"];
+        post?: never;
+        /** Xóa ảnh banner */
+        delete: operations["deleteBanner"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments/{id}": {
         parameters: {
             query?: never;
@@ -835,6 +856,57 @@ export interface operations {
                 "application/json": components["schemas"]["PhaseScheduleRequest"];
             };
         };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"];
+                };
+            };
+        };
+    };
+    uploadBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventResponse"];
+                };
+            };
+        };
+    };
+    deleteBanner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {

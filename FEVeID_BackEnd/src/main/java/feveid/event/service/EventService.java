@@ -16,4 +16,6 @@ public interface EventService {
     EventResponse publishEvent(Long id);
     EventResponse cancelEvent(Long id);
     void deleteEvent(Long id);
+    EventResponse uploadBanner(Long id, byte[] data);
+    EventResponse deleteBanner(Long id);
 }

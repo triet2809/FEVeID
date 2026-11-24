@@ -14,17 +14,17 @@ public final class ImageValidator {
     private ImageValidator() {
     }
 
-    /**
-     * Ảnh hợp lệ -> trả về loại ảnh; sai -> throw BadRequestException (message tiếng Việt cho người dùng).
-     *
-     * @param data toàn bộ nội dung file (MultipartFile.getBytes())
-     */
     // 1. byte có dấu: 0xFF, 0xD8, 0x89 > 127 nên phải ép (byte); 0x50, 0x4E,... < 127 thì không cần
     private static final byte[] JPEG_MAGIC = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
     private static final byte[] PNG_MAGIC = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
     private static final byte[] RIFF = "RIFF".getBytes(StandardCharsets.US_ASCII);
     private static final byte[] WEBP = "WEBP".getBytes(StandardCharsets.US_ASCII);
 
+    /**
+     * Ảnh hợp lệ -> trả về loại ảnh; sai -> throw BadRequestException (message tiếng Việt cho người dùng).
+     *
+     * @param data toàn bộ nội dung file (MultipartFile.getBytes())
+     */
     public static ImageType validate(byte[] data) {
         if (data.length == 0) {
             throw new BadRequestException("File rỗng");

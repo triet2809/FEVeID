@@ -1,6 +1,7 @@
 
 package feveid.common.exception;
 
+import feveid.common.upload.ImageStorageException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 
 
@@ -59,6 +61,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String message = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
         return buildError(HttpStatus.BAD_REQUEST, message, request);
+    }
+
+    // 413 file vượt spring.servlet.multipart.max-file-size
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleMaxUploadSize(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.CONTENT_TOO_LARGE, "Ảnh tối đa 10MB", request);
+    }
+
+    // 502 dịch vụ lưu ảnh (Cloudinary) lỗi hoặc chưa cấu hình: lỗi ở phía "cổng" mình gọi ra ngoài, không phải lỗi người dùng
+    @ExceptionHandler(ImageStorageException.class)
+    public ResponseEntity<ApiError> handleImageStorage(ImageStorageException ex, HttpServletRequest request) {
+        log.error("Lỗi dịch vụ lưu ảnh tại {}", request.getRequestURI(), ex);
+        return buildError(HttpStatus.BAD_GATEWAY, ex.getMessage(), request);
     }
 
     //401 lỗi đăng nhập
