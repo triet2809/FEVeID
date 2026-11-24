@@ -14,6 +14,7 @@ import feveid.event.entity.Event;
 import feveid.event.entity.EventPhase;
 import feveid.event.enums.EventPublication;
 import feveid.event.enums.EventStatus;
+import feveid.event.enums.EventVisibility;
 import feveid.event.enums.PhaseKind;
 import feveid.event.repository.EventRepository;
 import feveid.event.schedule.CurrentStatus;
@@ -251,6 +252,9 @@ public class EventServiceImpl implements EventService {
         event.setDescription(request.description());
         event.setLocation(request.location());
         event.setVisibility(request.visibility());
+        // PUBLIC luôn hiện cho khách nên lưu true luôn, tránh dữ liệu kiểu "PUBLIC nhưng không hiện"
+        event.setPubliclyListed(request.visibility() == EventVisibility.PUBLIC
+                || Boolean.TRUE.equals(request.publiclyListed()));
         event.setCapacity(request.capacity());
         event.setRegistrationOpensAt(request.registrationOpensAt());
         event.setRegistrationClosesAt(request.registrationClosesAt());

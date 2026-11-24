@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   DatePicker,
   Form,
   Input,
@@ -20,6 +21,7 @@ type FormValues = {
   description?: string;
   location?: string;
   visibility: EventRequest["visibility"];
+  publiclyListed?: boolean;
   capacity?: number | null;
   registration?: [Dayjs, Dayjs] | null;
   ownerMemberId?: number | null;
@@ -29,7 +31,7 @@ type FormValues = {
 // "?? undefined": null → undefined, vì JSON.stringify bỏ field undefined → backend nhận null
 function toFormValues(event: EventResponse | undefined): FormValues {
   if (!event) {
-    return { name: "", visibility: "INTERNAL" };
+    return { name: "", visibility: "INTERNAL", publiclyListed: false };
   }
   const opens = toPickerValue(event.registrationOpensAt);
   const closes = toPickerValue(event.registrationClosesAt);
@@ -38,6 +40,7 @@ function toFormValues(event: EventResponse | undefined): FormValues {
     description: event.description,
     location: event.location,
     visibility: event.visibility,
+    publiclyListed: event.publiclyListed,
     capacity: event.capacity,
     registration: opens && closes ? [opens, closes] : null,
     ownerMemberId: event.owner?.id,
@@ -50,6 +53,7 @@ function toRequest(values: FormValues): EventRequest {
     description: values.description || undefined, // ô trống "" → không gửi
     location: values.location || undefined,
     visibility: values.visibility,
+    publiclyListed: values.publiclyListed ?? false,
     capacity: values.capacity ?? undefined,
     registrationOpensAt: toIso(values.registration?.[0]),
     registrationClosesAt: toIso(values.registration?.[1]),
@@ -131,6 +135,22 @@ export function EventInfoForm({
                 : `${VISIBILITY_LABELS.PUBLIC} (cả người ngoài)`,
           }))}
         />
+      </Form.Item>
+
+      {/* dependencies: vẽ lại phần này mỗi khi ô visibility đổi. PUBLIC thì backend luôn coi là hiện công khai
+          nên chỉ hỏi khi INTERNAL */}
+      <Form.Item noStyle dependencies={["visibility"]}>
+        {({ getFieldValue }) =>
+          getFieldValue("visibility") === "INTERNAL" && (
+            <Form.Item
+              name="publiclyListed"
+              valuePropName="checked" // Checkbox dùng prop "checked" thay vì "value"
+              extra="Khách xem được thông tin để biết CLB có hoạt động này, nhưng không đăng ký được"
+            >
+              <Checkbox>Hiện cho khách xem trên trang công khai</Checkbox>
+            </Form.Item>
+          )
+        }
       </Form.Item>
 
       <Form.Item
