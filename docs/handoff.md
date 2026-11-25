@@ -54,7 +54,7 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 8.5 | Học nhanh TypeScript + React (A: TS; B1–B4: component, state, useEffect, cập nhật dữ liệu; C1: React Router; C2: TanStack Query; C3: Ant Design) | ✅ 23/11 (playground ngoài repo) |
 | 9 | Khởi tạo React (9.1 role trong `/me`, 9.2 JWT trong cookie httpOnly + CSRF, 9.3 khung `FEVeID_FrontEnd` + CI frontend, 9.4 login + layout/menu theo role) | ✅ PR #30, #31, #32, #33 |
 | 10 | CRUD sự kiện + upload ảnh (10.1 tính trạng thái, 10.2 CRUD + lịch giai đoạn, 10.3a kiểm tra ảnh, 10.3b Cloudinary, 10.4 trang quản lý sự kiện) | ✅ PR #36, #37, #38, #40, #41 |
-| 11 | Trang sự kiện công khai + đăng ký (11.1 API công khai, 11.2 member đăng ký + khóa chỗ, 11.3 khách đăng ký, 11.4 danh sách đăng ký, 11.5 frontend) | 🟡 #43, #45, #46 đã merge; 11.4 + 11.5 chờ merge |
+| 11 | Trang sự kiện công khai + đăng ký (11.1 API công khai, 11.2 member đăng ký + khóa chỗ, 11.3 khách đăng ký, 11.4 danh sách đăng ký, 11.5 frontend) | ✅ PR #43, #45, #46, #47, #48 |
 | 12 | Check-in + sổ cái điểm | |
 | 13 | Finalize sự kiện | |
 | 14 | Deploy (đây là mốc MVP) | |
@@ -77,13 +77,19 @@ Ngày 24/11: xong Bài 9 (gồm cả việc đổi sang cookie httpOnly, ngoài 
 
 Ngày 25/11 (rạng sáng): xong Bài 10, nhanh hơn kế hoạch nhờ Claude viết cả 10.3b + 10.4. Còn Bài 11–14 tới MVP.
 
-Ngày 25/11 (chiều): Bài 11 gần xong trong 1 ngày (11.1–11.3 đã merge, 11.4 + 11.5 đã viết, chờ merge). Nhanh hơn kế hoạch: MVP có thể sớm hơn 5–8/12.
+Ngày 25/11 (tối): xong Bài 11 trong 1 ngày (Claude viết phần lớn, chủ dự án gõ lõi 11.2 theo code mẫu). Nhanh hơn kế hoạch: MVP có thể sớm hơn 5–8/12.
 
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-25 chiều (trên laptop Windows)_
+_Cập nhật: 2026-11-25 tối (trên laptop Windows)_
 
-- **Bài 11 gần xong.** Đã merge: #43 (11.1), #45 (11.2), #46 (11.3). **Chờ merge:** nhánh `feat/event-pages` chứa cả 11.4 (`feat/registration-lists`) lẫn 11.5; đã đồng bộ với master sau #46 (merge, không force-push). Merge một PR từ `feat/event-pages` là đủ, xong xóa cả `feat/registration-lists`. **Tiếp theo: Bài 12 – check-in QR + sổ cái điểm.**
+- **Bài 11 xong** (PR #43, #45, #46, #47, #48; docs #49). Master sạch, không còn nhánh dở. **Tiếp theo: Bài 12 – check-in + sổ cái điểm.**
+- **Kế hoạch Bài 12 (đề xuất, chốt lại với chủ dự án đầu bài):**
+  - 12.1 Sổ cái điểm `point_transactions` (append-only: member, term, số điểm, lý do, sự kiện nguồn; số dư = tổng giao dịch của kỳ hiện tại). Mẫu quen → Claude viết.
+  - 12.2 Check-in member bằng QR xoay vòng: màn hình HR/BCN hiện mã = HMAC(eventId + khung 30 giây, secret); member quét → `POST` mã → kiểm tra khung hiện tại (± 1 khung), sự kiện đang `ONGOING`, đăng ký `CONFIRMED` → `CHECKED_IN` + cộng 1 điểm **trong cùng transaction**, quét lại không cộng thêm. Loại **bảo mật** → học trước (HMAC, vì sao không gửi ảnh mã được) + test trước, chủ dự án tự viết lõi (tạo/kiểm mã, đổi trạng thái + cộng điểm), test các ca gửi trùng, mã giả, mã hết hạn, 2 lần quét đồng thời.
+  - 12.3 Check-in tay của HR từ tab "Đăng ký" (tìm tên/MSSV đã có), HR/BCN xem số đã check-in.
+  - 12.4 Khách: vé QR cá nhân qua email + link hủy có mã bí mật → cần gửi mail (có thể dời sau MVP).
+  - 12.5 Sự kiện `COMPLETED` → đăng ký `CONFIRMED` chưa check-in = `NO_SHOW` (tính lúc đọc hoặc job; quyết ở 12.5).
 - **Bài 11 đã làm gì (để Bài 12 dùng lại):**
   - V9 `events.publicly_listed`: sự kiện INTERNAL vẫn hiện cho khách xem (không đăng ký được) nếu BCN chọn; PUBLIC luôn hiện. `Event.isVisibleToGuests()`.
   - `GET /api/public/events` (`status`, `q`) + `/{id}`, permitAll: khách thấy PUBLIC + INTERNAL được hiện; đã đăng nhập thấy mọi sự kiện `PUBLISHED`; bản nháp/đã hủy/khách mở sự kiện ẩn → **404**. `PublicEventResponse` không có owner/publication, có `registrationOpen` (`RegistrationWindow.isOpen`). `Authentications.isSignedIn()` (khách = `AnonymousAuthenticationToken`, không phải null).
@@ -95,9 +101,10 @@ _Cập nhật: 2026-11-25 chiều (trên laptop Windows)_
   - Sinh `schema.d.ts` không cần chạy backend: test tạm gọi `/v3/api-docs` bằng MockMvc → file JSON → `npx openapi-typescript <file>`; xóa test tạm sau khi dùng.
 - **Còn treo từ Bài 11:**
   - Câu hỏi kiểm tra 11.2–11.4 (vì sao khóa trước khi đếm; xóa `@Transactional` thì khóa vô dụng; 403 vs 404; member + khách chung khóa; N+1 nếu bỏ `@EntityGraph`) **do Claude trả lời theo yêu cầu**, chủ dự án chưa tự trả lời. Thí nghiệm đổi `findById` chưa làm. Bài 12 (check-in = tiền/bảo mật): hỏi lại ngắn 1 câu "vì sao khóa trước khi đếm" trước khi viết lõi.
-  - 11.5 chỉ kiểm tra mức nhẹ (lint + tsc + build), **chưa bấm thử trên trình duyệt**. Câu hỏi mức kiểm tra nhẹ/kỹ vẫn chưa trả lời.
+  - 11.5 chỉ kiểm tra mức nhẹ (lint + tsc + build). Chủ dự án **chưa báo đã bấm thử** luồng khách/member/HR trên trình duyệt → đầu Bài 12 hỏi lại; có lỗi giao diện thì sửa trước. Câu hỏi mức kiểm tra nhẹ/kỹ vẫn chưa trả lời.
+  - Câu hỏi frontend chưa trả lời: (11.5) vì sao khóa cache trang công khai có `signedIn`; nút đã khóa khi đang gửi thì backend còn cần chặn trùng không; ("sửa ở đâu") thêm cột "Địa điểm" vào "Sự kiện của tôi" sửa file nào; đổi nhãn "Đã đăng ký" sửa mấy file.
   - Chưa hiện "còn X chỗ" ở trang công khai (cần đếm theo sự kiện, tránh N+1); khách đăng ký không xác minh email; chưa có wishlist.
-  - Tiêu đề squash #45 "Feat/member registration" sai quy ước (#41 cũng vậy).
+  - Tiêu đề squash vẫn để mặc định "Feat/…"/"Docs/…" ở #41, #45, #47, #48, #49 (sai quy ước `feat: ...`). Nhắc sửa ô tiêu đề lúc bấm Squash and merge.
   - Bài học quy trình: tạo nhánh từ nhánh chưa merge → sau squash merge bị conflict (#44 phải đóng). Cách sửa không cần force-push: `git merge -X ours origin/master` vào nhánh sau rồi kiểm tra tree không đổi (`git rev-parse HEAD^{tree}` trước/sau). Force-push bị chặn trong phiên Claude.
   - Chủ dự án hay nói "xong rồi" trước khi bấm Merge (#46 lúc đó vẫn mở) → luôn kiểm tra `git log origin/master`.
 - **Từ Bài 10 vẫn treo:** câu hỏi 10.3b/10.4 chưa trả lời; Cloudinary chưa có `CLOUDINARY_URL` trên Mac mini; `asset_folder` chưa làm.
@@ -137,7 +144,11 @@ _Cập nhật: 2026-11-25 chiều (trên laptop Windows)_
 - Buổi tổng kết kỳ có thể kiêm **kết nạp thành viên mới** (CTV → ACTIVE hàng loạt) → nhớ khi làm tuyển CTV.
 - Từ trước: HR đặt mật khẩu cho member (`roadmap.md`); HR tự Disqualify chính mình/PRESIDENT; lịch sử đổi trạng thái thành viên; tìm kiếm + phân trang; 2 request tạo kỳ chồng nhau cùng lúc → 500 (`DataIntegrityViolationException`); khoảng trống giữa 2 kỳ (quyết ở Bài 12).
 
-### Ghi chú về cách học (cập nhật 24/11)
+### Ghi chú về cách học (cập nhật 25/11)
+- Chủ dự án nói rõ: **backend đã rõ ("đúng nghề"), frontend còn mơ hồ nhiều.** Ngày 25/11 Claude đã giải thích lại cấu trúc `FEVeID_FrontEnd/src` theo bảng so sánh với Spring (`App.tsx` ≈ `@GetMapping`, `RequireAuth/RequireRole` ≈ security filter/`@PreAuthorize`, `*Queries.ts` ≈ service + `@Cacheable/@CacheEvict`, `*Api.ts` + `api/client.ts` ≈ Feign/RestTemplate + filter, `schema.d.ts` ≈ DTO, `*Labels.ts` ≈ enum → nhãn, `pages/` = màn hình theo URL, `layouts/` = khung + `<Outlet/>`), 5 khái niệm (component/props, hook `use…`, useQuery/useMutation/invalidate, Route/useParams/useSearchParams/Outlet, antd) và đi theo luồng bấm "Đăng ký tham gia" từ URL tới backend rồi vẽ lại. Ý chính cần nhắc lại: frontend không "ra lệnh sửa nút", chỉ làm mới dữ liệu → giao diện tự vẽ lại.
+- Từ nay: backend giải thích ngắn, tập trung chỗ mới; **frontend** mỗi lần thêm trang thì kèm bản đồ luồng theo đúng mẫu trên + 1–2 câu "sửa ở đâu" (chỉ cần nêu tên file).
+
+### Ghi chú về cách học (24/11)
 - Bài 9 chủ dự án xin code mẫu cho phần frontend ("không rõ code FE") → với frontend, đưa code mẫu có comment so sánh Java ngay, rồi hỏi câu kiểm tra.
 - Câu trả lời kiểm tra Bài 9: nhầm "trình duyệt tự gửi cookie" với "JS tự gắn header" (CSRF); tưởng GET thiếu CSRF → 401 (thật ra 200); tưởng quên `queryClient.clear()` thì "còn token, báo 401" (thật ra lộ dữ liệu người trước, không có lỗi gì). Đúng: thêm trang mới = route + trang + mục menu. Hay muốn bỏ qua câu hỏi kiểm tra ("tôi hiểu rồi, qua tiếp") → vẫn hỏi ngắn, ghi lại câu chưa trả lời.
 - Vẫn chạy `npm` ở gốc repo (lần này `npm run dev` "không chạy được" vì đứng ở `D:\FEVeID`) → luôn nhắc `cd FEVeID_FrontEnd`, dấu nhắc phải là `PS D:\FEVeID\FEVeID_FrontEnd>`.
