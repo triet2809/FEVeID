@@ -41,28 +41,37 @@ public class RegistrationServiceImpl implements RegistrationService {
     public RegistrationResponse register(String email, Long eventId) {
         Instant now = clock.instant();
         Member member = findMember(email);
-
-        // ===================== PHẦN LÕI (Bài 11.2) =====================
-        // TODO 1. Lấy sự kiện VÀ khóa dòng của nó: eventRepository.findByIdForUpdate(eventId).
-        //         Không có -> NotFoundException(EVENT_NOT_FOUND).
-        //         Hỏi bản thân: vì sao bước khóa phải đứng TRƯỚC các bước kiểm tra 3, 4, 5?
-        //
-        // TODO 2. Tính trạng thái hiển thị: statusOf(event, now).
-        //         Bản nháp (DRAFT) -> NotFoundException(EVENT_NOT_FOUND)  (member không được biết có bản nháp)
-        //
-        // TODO 3. Ngoài giờ mở đăng ký -> ConflictException(NOT_OPEN).
-        //         Dùng lại RegistrationWindow.isOpen(...) từ 11.1 (nó đã từ chối CANCELLED, COMPLETED)
-        //
-        // TODO 4. Đã có đăng ký còn hiệu lực -> ConflictException(ALREADY_REGISTERED).
-        //         registrationRepository.existsByEventIdAndMemberIdAndStatusIn(..., RegistrationStatus.ACTIVE)
-        //
-        // TODO 5. Hết chỗ -> ConflictException(FULL).
-        //         capacity null = không giới hạn. Số chỗ đã dùng: countByEventIdAndStatusIn(..., ACTIVE)
-        //
-        // TODO 6. Tạo Registration (event, member, status CONFIRMED vì sự kiện miễn phí), save,
-        //         trả RegistrationResponse.from(...)
-        // ================================================================
-        throw new UnsupportedOperationException("TODO Bài 11.2");
+        // 1. Lấy sự kiện và KHÓA dòng của nó (SELECT ... FOR UPDATE).
+        //    Transaction khác gọi cùng eventId sẽ đứng đợi ở dòng này cho tới khi transaction của mình commit
+        Event event = eventRepository.findByIdForUpdate(eventId)
+                .orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
+        // 2. Bản nháp: member không được biết là có -> 404 như không tồn tại
+        EventStatus status = statusOf(event, now);
+        if (status == EventStatus.DRAFT) {
+            throw new NotFoundException(EVENT_NOT_FOUND);
+        }
+        // 3. Ngoài giờ mở đăng kí. isOpen đã tự từ chối CANCELLED và COMPLETED
+        if (!RegistrationWindow.isOpen(status, event.getRegistrationOpensAt(), event.getRegistrationClosesAt(), now)) {
+            throw new ConflictException(NOT_OPEN);
+        }
+        // 4. Đã có đăng ký còn hiệu lực (CONFIRMED....) Đăng ký đã hủy thì không tính
+        if (registrationRepository.existsByEventIdAndMemberIdAndStatusIn(eventId, member.getId(), RegistrationStatus.ACTIVE)) {
+            throw new ConflictException(ALREADY_REGISTERED);
+        }
+        // 5. Hết chỗ. capacity null = không giới hạn nên bỏ qua bước đếm
+        if (event.getCapacity() != null) {
+            long used = registrationRepository.countByEventIdAndStatusIn(eventId, RegistrationStatus.ACTIVE);
+            if (used >= event.getCapacity()) {
+                throw new ConflictException(FULL);
+            }
+        }
+        // 6. Sự kiện miễn phí: đăng ký xong là CONFIRMED luôn (có phí thì PENDING_PAYMENT, Bài 18)
+        Registration registration = Registration.builder()
+                .event(event)
+                .member(member)
+                .status(RegistrationStatus.CONFIRMED)
+                .build();
+        return RegistrationResponse.from(registrationRepository.save(registration));
     }
 
     // Hủy được khi đăng ký còn hiệu lực và sự kiện còn đang mở đăng ký (requirements 12.2: "hủy trước hạn")
