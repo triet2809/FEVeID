@@ -11,7 +11,9 @@ import feveid.event.schedule.EventStatusCalculator;
 import feveid.event.schedule.RegistrationWindow;
 import feveid.member.entity.Member;
 import feveid.member.repository.MemberRepository;
+import feveid.registration.dto.EventRegistrationResponse;
 import feveid.registration.dto.GuestRegistrationRequest;
+import feveid.registration.dto.MyRegistrationResponse;
 import feveid.registration.dto.RegistrationResponse;
 import feveid.registration.entity.Registration;
 import feveid.registration.enums.RegistrationStatus;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -137,14 +140,42 @@ public class RegistrationServiceImpl implements RegistrationService {
         if (!RegistrationStatus.ACTIVE.contains(registration.getStatus())) {
             throw new ConflictException("Đăng ký này đã hủy hoặc không còn hiệu lực");
         }
-        Event event = registration.getEvent();
-        if (!RegistrationWindow.isOpen(statusOf(event, now),
-                event.getRegistrationOpensAt(), event.getRegistrationClosesAt(), now)) {
+        if (!canCancel(registration, now)) {
             throw new ConflictException("Đã hết hạn hủy đăng ký");
         }
         registration.setStatus(RegistrationStatus.CANCELLED);
         registration.setCancelledAt(now);
         return RegistrationResponse.from(registration);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MyRegistrationResponse> getMyRegistrations(String email) {
+        Instant now = clock.instant();
+        Member member = findMember(email);
+        return registrationRepository.findByMemberIdOrderByCreatedAtDescIdDesc(member.getId()).stream()
+                .map(registration -> MyRegistrationResponse.from(registration,
+                        statusOf(registration.getEvent(), now), canCancel(registration, now)))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventRegistrationResponse> getEventRegistrations(Long eventId) {
+        if (!eventRepository.existsById(eventId)) {
+            throw new NotFoundException(EVENT_NOT_FOUND);
+        }
+        return registrationRepository.findByEventIdOrderByCreatedAtAscIdAsc(eventId).stream()
+                .map(EventRegistrationResponse::from)
+                .toList();
+    }
+
+    // Dùng chung cho cancel() và cờ cancellable ở "Sự kiện của tôi": nút Hủy hiện ra thì bấm phải được
+    private static boolean canCancel(Registration registration, Instant now) {
+        Event event = registration.getEvent();
+        return RegistrationStatus.ACTIVE.contains(registration.getStatus())
+                && RegistrationWindow.isOpen(statusOf(event, now),
+                event.getRegistrationOpensAt(), event.getRegistrationClosesAt(), now);
     }
 
     private Member findMember(String email) {

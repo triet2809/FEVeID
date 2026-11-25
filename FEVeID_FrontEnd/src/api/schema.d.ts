@@ -460,6 +460,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/registrations/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sự kiện của tôi
+         * @description Đăng ký mới nhất trước, gồm cả đăng ký đã hủy
+         */
+        get: operations["getMyRegistrations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/events": {
         parameters: {
             query?: never;
@@ -529,6 +549,26 @@ export interface paths {
         };
         /** Xem hồ sơ thành viên */
         get: operations["getMemberById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/events/{eventId}/registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Danh sách đăng ký của sự kiện
+         * @description Gồm cả member và khách, cả đăng ký đã hủy. Đăng ký trước đứng trước
+         */
+        get: operations["getEventRegistrations"];
         put?: never;
         post?: never;
         delete?: never;
@@ -785,6 +825,31 @@ export interface components {
             phone?: string;
             avatarUrl?: string;
         };
+        EventSummary: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            bannerUrl?: string;
+            location?: string;
+            /** @enum {string} */
+            status: "DRAFT" | "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED";
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+        };
+        MyRegistrationResponse: {
+            /** Format: int64 */
+            id: number;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "CONFIRMED" | "CHECKED_IN" | "CANCELLED" | "EXPIRED" | "NO_SHOW";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            cancelledAt?: string;
+            cancellable: boolean;
+            event: components["schemas"]["EventSummary"];
+        };
         PublicEventResponse: {
             /** Format: int64 */
             id: number;
@@ -809,6 +874,23 @@ export interface components {
             registrationClosesAt: string;
             registrationOpen: boolean;
             phases: components["schemas"]["PhaseResponse"][];
+        };
+        EventRegistrationResponse: {
+            /** Format: int64 */
+            id: number;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "CONFIRMED" | "CHECKED_IN" | "CANCELLED" | "EXPIRED" | "NO_SHOW";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            cancelledAt?: string;
+            member: boolean;
+            /** Format: int64 */
+            memberId?: number;
+            fullName: string;
+            email: string;
+            phone?: string;
+            studentCodeOrSchool?: string;
         };
         DepartmentMemberResponse: {
             /** Format: int64 */
@@ -1569,6 +1651,26 @@ export interface operations {
             };
         };
     };
+    getMyRegistrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["MyRegistrationResponse"][];
+                };
+            };
+        };
+    };
     getEvents_1: {
         parameters: {
             query?: {
@@ -1654,6 +1756,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MemberResponse"];
+                };
+            };
+        };
+    };
+    getEventRegistrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventRegistrationResponse"][];
                 };
             };
         };

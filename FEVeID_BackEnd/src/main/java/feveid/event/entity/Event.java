@@ -2,6 +2,7 @@ package feveid.event.entity;
 
 import feveid.event.enums.EventPublication;
 import feveid.event.enums.EventVisibility;
+import feveid.event.enums.PhaseKind;
 import feveid.event.schedule.PhaseSlot;
 import feveid.member.entity.Member;
 import jakarta.persistence.*;
@@ -94,6 +95,16 @@ public class Event {
     // Khách (chưa đăng nhập) có thấy sự kiện này trên trang công khai không, chưa xét đã công bố hay chưa
     public boolean isVisibleToGuests() {
         return visibility == EventVisibility.PUBLIC || publiclyListed;
+    }
+
+    // Mốc bắt đầu của giai đoạn đầu tiên có kind này: ONGOING -> giờ bắt đầu sự kiện, COMPLETED -> giờ kết thúc.
+    // Lịch đã xếp tăng dần (@OrderBy). null khi chưa có lịch (bản nháp)
+    public Instant firstStartOf(PhaseKind kind) {
+        return phases.stream()
+                .filter(phase -> phase.getKind() == kind)
+                .map(EventPhase::getStartsAt)
+                .findFirst()
+                .orElse(null);
     }
 
     public List<PhaseSlot> phaseSlots() {
