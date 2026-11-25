@@ -1,7 +1,6 @@
 package feveid.event.dto;
 
 import feveid.event.entity.Event;
-import feveid.event.entity.EventPhase;
 import feveid.event.enums.EventStatus;
 import feveid.event.enums.EventVisibility;
 import feveid.event.enums.PhaseKind;
@@ -46,21 +45,13 @@ public record PublicEventResponse(
                 event.getVisibility(),
                 current.status(),
                 current.phaseName(),
-                firstStartOf(event, PhaseKind.ONGOING),
-                firstStartOf(event, PhaseKind.COMPLETED),
+                event.firstStartOf(PhaseKind.ONGOING),
+                event.firstStartOf(PhaseKind.COMPLETED),
                 event.getCapacity(),
                 event.getRegistrationOpensAt(),
                 event.getRegistrationClosesAt(),
                 registrationOpen,
                 event.getPhases().stream().map(PhaseResponse::from).toList()
         );
-    }
-
-    private static Instant firstStartOf(Event event, PhaseKind kind) {
-        return event.getPhases().stream()
-                .filter(phase -> phase.getKind() == kind)
-                .map(EventPhase::getStartsAt)
-                .findFirst()
-                .orElseThrow();
     }
 }

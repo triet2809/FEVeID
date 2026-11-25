@@ -1,5 +1,6 @@
 package feveid.registration.controller;
 
+import feveid.registration.dto.MyRegistrationResponse;
 import feveid.registration.dto.RegistrationRequest;
 import feveid.registration.dto.RegistrationResponse;
 import feveid.registration.service.RegistrationService;
@@ -11,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 // Member đăng ký sự kiện (requirements.md 12.2). Mọi role đều là member nên chỉ cần đăng nhập
 // (SecurityConfig: anyRequest().authenticated()). Khách đăng ký qua API riêng ở Bài 11.3
@@ -28,6 +31,12 @@ public class RegistrationController {
                                                          @Valid @RequestBody RegistrationRequest request) {
         return new ResponseEntity<>(registrationService.register(authentication.getName(), request.eventId()),
                 HttpStatus.CREATED);
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "Sự kiện của tôi", description = "Đăng ký mới nhất trước, gồm cả đăng ký đã hủy")
+    public ResponseEntity<List<MyRegistrationResponse>> getMyRegistrations(Authentication authentication) {
+        return ResponseEntity.ok(registrationService.getMyRegistrations(authentication.getName()));
     }
 
     @PostMapping("/{id}/cancel")

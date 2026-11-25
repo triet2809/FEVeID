@@ -6,7 +6,6 @@ import feveid.event.enums.EventStatus;
 import feveid.event.enums.EventVisibility;
 import feveid.event.enums.PhaseKind;
 import feveid.event.schedule.CurrentStatus;
-import feveid.event.entity.EventPhase;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
@@ -53,8 +52,8 @@ public record EventResponse(
                 event.getPublication(),
                 current.status(),
                 current.phaseName(),
-                firstStartOf(event, PhaseKind.ONGOING),
-                firstStartOf(event, PhaseKind.COMPLETED),
+                event.firstStartOf(PhaseKind.ONGOING),
+                event.firstStartOf(PhaseKind.COMPLETED),
                 event.getCapacity(),
                 event.getRegistrationOpensAt(),
                 event.getRegistrationClosesAt(),
@@ -62,14 +61,5 @@ public record EventResponse(
                         : new OwnerRef(event.getOwner().getId(), event.getOwner().getFullName()),
                 event.getPhases().stream().map(PhaseResponse::from).toList()
         );
-    }
-
-    // Lịch đã xếp tăng dần (@OrderBy) nên phần tử đầu tiên có kind này là mốc sớm nhất
-    private static Instant firstStartOf(Event event, PhaseKind kind) {
-        return event.getPhases().stream()
-                .filter(phase -> phase.getKind() == kind)
-                .map(EventPhase::getStartsAt)
-                .findFirst()
-                .orElse(null);
     }
 }
