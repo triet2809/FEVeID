@@ -157,6 +157,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Đăng ký sự kiện
+         * @description Sự kiện miễn phí: đăng ký xong là CONFIRMED. 409 nếu ngoài giờ đăng ký, đã đăng ký, hết chỗ
+         */
+        post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/registrations/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hủy đăng ký của tôi
+         * @description Chỉ hủy được khi sự kiện còn đang mở đăng ký
+         */
+        post: operations["cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -654,6 +694,23 @@ export interface components {
             name?: string;
             description?: string;
         };
+        RegistrationRequest: {
+            /** Format: int64 */
+            eventId: number;
+        };
+        RegistrationResponse: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            eventId: number;
+            eventName: string;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "CONFIRMED" | "CHECKED_IN" | "CANCELLED" | "EXPIRED" | "NO_SHOW";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            cancelledAt?: string;
+        };
         LoginRequest: {
             /** Format: email */
             email: string;
@@ -1074,6 +1131,52 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TermResponse"];
+                };
+            };
+        };
+    };
+    register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RegistrationResponse"];
+                };
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RegistrationResponse"];
                 };
             };
         };

@@ -9,6 +9,7 @@ import feveid.department.entity.Department;
 import feveid.department.repository.DepartmentMembershipRepository;
 import feveid.department.repository.DepartmentRepository;
 import feveid.event.repository.EventRepository;
+import feveid.registration.repository.RegistrationRepository;
 import feveid.member.entity.Member;
 import feveid.member.repository.MemberRepository;
 import feveid.term.repository.TermRepository;
@@ -46,8 +47,11 @@ public abstract class ApiTestSupport {
     protected TermRepository termRepository;
     @Autowired
     protected EventRepository eventRepository;
+    @Autowired
+    protected RegistrationRepository registrationRepository;
 
     protected void cleanDatabase() {
+        registrationRepository.deleteAll(); // trỏ tới events và members → xóa đầu tiên
         eventRepository.deleteAll();        // events trỏ tới members → xóa trước (event_phases xóa theo)
         membershipRepository.deleteAll();   // bảng con (có khóa ngoại tới members và departments) → xóa trước
         departmentRepository.deleteAll();
