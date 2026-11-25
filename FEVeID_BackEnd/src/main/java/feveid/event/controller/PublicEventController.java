@@ -1,5 +1,6 @@
 package feveid.event.controller;
 
+import feveid.common.security.Authentications;
 import feveid.event.dto.PublicEventResponse;
 import feveid.event.enums.EventStatus;
 import feveid.event.service.PublicEventService;
@@ -7,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,18 +30,12 @@ public class PublicEventController {
             Authentication authentication,
             @RequestParam(required = false) EventStatus status,
             @RequestParam(required = false) String q) {
-        return ResponseEntity.ok(publicEventService.getEvents(isSignedIn(authentication), status, q));
+        return ResponseEntity.ok(publicEventService.getEvents(Authentications.isSignedIn(authentication), status, q));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Chi tiết sự kiện", description = "404 nếu chưa công bố, đã hủy, hoặc khách không được xem")
     public ResponseEntity<PublicEventResponse> getEvent(Authentication authentication, @PathVariable Long id) {
-        return ResponseEntity.ok(publicEventService.getEvent(id, isSignedIn(authentication)));
-    }
-
-    // Route permitAll: chưa đăng nhập thì Spring Security đặt AnonymousAuthenticationToken (thường không phải null)
-    private static boolean isSignedIn(Authentication authentication) {
-        return authentication != null && authentication.isAuthenticated()
-                && !(authentication instanceof AnonymousAuthenticationToken);
+        return ResponseEntity.ok(publicEventService.getEvent(id, Authentications.isSignedIn(authentication)));
     }
 }
