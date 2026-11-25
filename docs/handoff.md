@@ -54,7 +54,7 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 8.5 | Học nhanh TypeScript + React (A: TS; B1–B4: component, state, useEffect, cập nhật dữ liệu; C1: React Router; C2: TanStack Query; C3: Ant Design) | ✅ 23/11 (playground ngoài repo) |
 | 9 | Khởi tạo React (9.1 role trong `/me`, 9.2 JWT trong cookie httpOnly + CSRF, 9.3 khung `FEVeID_FrontEnd` + CI frontend, 9.4 login + layout/menu theo role) | ✅ PR #30, #31, #32, #33 |
 | 10 | CRUD sự kiện + upload ảnh (10.1 tính trạng thái, 10.2 CRUD + lịch giai đoạn, 10.3a kiểm tra ảnh, 10.3b Cloudinary, 10.4 trang quản lý sự kiện) | ✅ PR #36, #37, #38, #40, #41 |
-| 11 | Trang sự kiện công khai + đăng ký | |
+| 11 | Trang sự kiện công khai + đăng ký (11.1 API công khai, 11.2 member đăng ký + khóa chỗ, 11.3 khách đăng ký, 11.4 danh sách đăng ký, 11.5 frontend) | 🟡 #43, #45, #46 đã merge; 11.4 + 11.5 chờ merge |
 | 12 | Check-in + sổ cái điểm | |
 | 13 | Finalize sự kiện | |
 | 14 | Deploy (đây là mốc MVP) | |
@@ -77,22 +77,38 @@ Ngày 24/11: xong Bài 9 (gồm cả việc đổi sang cookie httpOnly, ngoài 
 
 Ngày 25/11 (rạng sáng): xong Bài 10, nhanh hơn kế hoạch nhờ Claude viết cả 10.3b + 10.4. Còn Bài 11–14 tới MVP.
 
+Ngày 25/11 (chiều): Bài 11 gần xong trong 1 ngày (11.1–11.3 đã merge, 11.4 + 11.5 đã viết, chờ merge). Nhanh hơn kế hoạch: MVP có thể sớm hơn 5–8/12.
+
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-25 rạng sáng (trên laptop Windows)_
+_Cập nhật: 2026-11-25 chiều (trên laptop Windows)_
 
-- **Bài 10 xong** (PR #36, #37, #38, #40, #41; CI xanh cả `build` lẫn `frontend-build`; backend 223 test). **Tiếp theo: Bài 11 – trang sự kiện công khai + đăng ký** (requirements 2.4, 12; member/guest xem sự kiện đã công bố, đăng ký nội bộ + khách không cần tài khoản, sự kiện miễn phí đăng ký thẳng). Bắt đầu bằng việc đọc requirements mục 12 và chốt thiết kế bảng `registrations` + API công khai (permitAll, chỉ trả sự kiện `PUBLISHED`, không lộ thông tin nội bộ như `owner`).
-- **Bài 10 đã làm gì (để Bài 11 dùng lại):**
-  - Backend `feveid/event/`: `events` + `event_phases` (V8). Trạng thái hiển thị tính lúc đọc: `EventStatusCalculator.compute(publication, phaseSlots, now)`; lịch kiểm tra bằng `PhaseScheduleValidator`. `/api/events` chỉ HR/PRESIDENT: CRUD, `PUT /{id}/phases` (thay cả lịch), `POST /{id}/phases/{phaseId}/start-now`, `publish`, `cancel` (vĩnh viễn), `DELETE` chỉ DRAFT. Sự kiện thuộc cả CLB, không có ban phụ trách; `owner` để trống được.
-  - Upload ảnh `common/upload/`: `ImageValidator` (magic bytes JPEG/PNG/WebP, ≤ 10MB) → `ImageStorage` (interface) → `CloudinaryImageStorage` (`cloudinary-http5` 2.6.0, `app.cloudinary.url=${CLOUDINARY_URL:}`, trống → 502). `PUT/DELETE /api/events/{id}/banner`, `public_id=feveid/events/{id}/banner` + `overwrite=true`. Test dùng `@MockitoBean ImageStorage`. Multipart 10MB → 413. Dùng lại cho avatar sau này.
-  - Frontend: `src/events/` (`eventApi`, `eventQueries` + `useEventMutation`, `eventLabels`, `EventInfoForm`, `PhaseSchedule` với `Form.List`, `BannerSection`), `src/pages/events/` (`/app/events`, `/new`, `/:id`), `src/lib/time.ts` (dayjs, hiển thị `Asia/Ho_Chi_Minh`), `api.upload` (FormData, không tự đặt Content-Type). Ảnh hiển thị qua `bannerThumb(url, width)` = `w_…,c_limit,f_auto,q_auto`.
-  - Cloudinary: cloud `uxnv0tiq`, API key "FEVeID". `CLOUDINARY_URL` trong `FEVeID_BackEnd/.env` từng máy (laptop có; **Mac mini chưa có**). Tài khoản mới dùng *dynamic folders* → ảnh nằm ở thư mục gốc Media Library, tìm bằng ô search (`feveid/events`); muốn hiện đúng thư mục thì thêm `asset_folder` khi upload (chưa làm).
-- **Còn treo từ Bài 10:**
-  - Chủ dự án merge #40 và #41 **trước khi trả lời câu hỏi kiểm tra và trước khi Claude review**. Câu chưa trả lời: (10.3b) vì sao gói `IOException` thành `ImageStorageException`, `IOException` lọt khỏi `@Transactional` có rollback không; vì sao validate trước upload; vì sao `deleteBanner` 502 còn `deleteEvent` chỉ log; `(byte) 0xFF`. (10.4) vì sao lưu lịch xong không cần GET lại (`setQueryData`); vì sao FormData không tự đặt `Content-Type`; vì sao kiểm tra loại file ở trình duyệt chưa đủ. → Đầu Bài 11 hỏi lại 2 câu ngắn nhất.
-  - Tiêu đề squash PR #41 trên master là "Feat/event admin pages" (chưa sửa theo quy ước `feat: ...`); không sửa được nữa vì master được bảo vệ, chỉ nhắc lần sau.
-  - Mức kiểm tra của Claude: đã hỏi chủ dự án chọn "nhẹ" (chỉ test liên quan + tsc/lint/build, chủ dự án tự bấm thử giao diện) hay "kỹ" (Claude tự thử trên trình duyệt) — **chưa trả lời**. Hỏi lại khi bắt đầu Bài 11; trong lúc chưa có câu trả lời thì dùng mức nhẹ cho nhanh.
-  - Bài học 25/11: chủ dự án đổi nhánh trong Sourcetree/IntelliJ ngay trên thư mục Claude đang làm → commit vào nhầm nhánh. Claude luôn chạy `git branch --show-current` ngay trước commit/push; nếu chủ dự án cần thử nhánh khác song song thì dùng git worktree riêng.
-  - Cách Claude tự thử giao diện mà không đụng máy chủ dự án: DB riêng `feveid_claude` trong container `feveid-postgres`, backend tạm cổng 8081 (profile dev, tài khoản HR test tự tạo), Vite tạm 5174 proxy sang 8081; xong thì xóa DB + config tạm. Trước khi thử upload thật thì đẩy sequence id sự kiện lên cao (vd 900000) để không ghi đè ảnh dev thật trên Cloudinary.
+- **Bài 11 gần xong.** Đã merge: #43 (11.1), #45 (11.2), #46 (11.3). **Chờ merge:** nhánh `feat/event-pages` chứa cả 11.4 (`feat/registration-lists`) lẫn 11.5; đã đồng bộ với master sau #46 (merge, không force-push). Merge một PR từ `feat/event-pages` là đủ, xong xóa cả `feat/registration-lists`. **Tiếp theo: Bài 12 – check-in QR + sổ cái điểm.**
+- **Bài 11 đã làm gì (để Bài 12 dùng lại):**
+  - V9 `events.publicly_listed`: sự kiện INTERNAL vẫn hiện cho khách xem (không đăng ký được) nếu BCN chọn; PUBLIC luôn hiện. `Event.isVisibleToGuests()`.
+  - `GET /api/public/events` (`status`, `q`) + `/{id}`, permitAll: khách thấy PUBLIC + INTERNAL được hiện; đã đăng nhập thấy mọi sự kiện `PUBLISHED`; bản nháp/đã hủy/khách mở sự kiện ẩn → **404**. `PublicEventResponse` không có owner/publication, có `registrationOpen` (`RegistrationWindow.isOpen`). `Authentications.isSignedIn()` (khách = `AnonymousAuthenticationToken`, không phải null).
+  - V10 `registrations` (member **hoặc** khách `guest_*`, CHECK đúng 1 trong 2), 2 unique index một phần trên đăng ký còn hiệu lực (`RegistrationStatus.ACTIVE` = PENDING_PAYMENT/CONFIRMED/CHECKED_IN, phải khớp WHERE của index). Bài 11 chỉ dùng CONFIRMED + CANCELLED.
+  - Đăng ký: **khóa dòng sự kiện trước** (`EventRepository.findByIdForUpdate`, `PESSIMISTIC_WRITE`, không kèm EntityGraph vì Postgres không cho FOR UPDATE trên LEFT JOIN) → kiểm tra giờ → trùng → số chỗ → ghi. Member `POST /api/registrations {eventId}`; khách `POST /api/public/events/{id}/registrations` (PUBLIC; INTERNAL được hiện → 403 `ForbiddenException`; đã đăng nhập → 400). Member + khách dùng chung số chỗ. Test 8 luồng giành 1 chỗ: bỏ khóa thì cả 8 lọt; bấm 5 lần không khóa → 500 duplicate key.
+  - Hủy (member): `POST /api/registrations/{id}/cancel`, chỉ khi còn mở đăng ký; `canCancel()` dùng chung cho cờ `cancellable`. Khách **chưa hủy được** (cần link có mã bí mật gửi email → Bài 12).
+  - `GET /api/registrations/me` ("Sự kiện của tôi"), `GET /api/events/{id}/registrations` (HR/BCN, member + khách chung dạng, dùng cho check-in tay ở Bài 12).
+  - Frontend: `PublicLayout`, `/events`, `/events/:id` (`RegistrationPanel`), `/app/my-events`, tab "Đăng ký" trong trang quản lý. Khóa cache trang công khai có `signedIn`.
+  - Sinh `schema.d.ts` không cần chạy backend: test tạm gọi `/v3/api-docs` bằng MockMvc → file JSON → `npx openapi-typescript <file>`; xóa test tạm sau khi dùng.
+- **Còn treo từ Bài 11:**
+  - Câu hỏi kiểm tra 11.2–11.4 (vì sao khóa trước khi đếm; xóa `@Transactional` thì khóa vô dụng; 403 vs 404; member + khách chung khóa; N+1 nếu bỏ `@EntityGraph`) **do Claude trả lời theo yêu cầu**, chủ dự án chưa tự trả lời. Thí nghiệm đổi `findById` chưa làm. Bài 12 (check-in = tiền/bảo mật): hỏi lại ngắn 1 câu "vì sao khóa trước khi đếm" trước khi viết lõi.
+  - 11.5 chỉ kiểm tra mức nhẹ (lint + tsc + build), **chưa bấm thử trên trình duyệt**. Câu hỏi mức kiểm tra nhẹ/kỹ vẫn chưa trả lời.
+  - Chưa hiện "còn X chỗ" ở trang công khai (cần đếm theo sự kiện, tránh N+1); khách đăng ký không xác minh email; chưa có wishlist.
+  - Tiêu đề squash #45 "Feat/member registration" sai quy ước (#41 cũng vậy).
+  - Bài học quy trình: tạo nhánh từ nhánh chưa merge → sau squash merge bị conflict (#44 phải đóng). Cách sửa không cần force-push: `git merge -X ours origin/master` vào nhánh sau rồi kiểm tra tree không đổi (`git rev-parse HEAD^{tree}` trước/sau). Force-push bị chặn trong phiên Claude.
+  - Chủ dự án hay nói "xong rồi" trước khi bấm Merge (#46 lúc đó vẫn mở) → luôn kiểm tra `git log origin/master`.
+- **Từ Bài 10 vẫn treo:** câu hỏi 10.3b/10.4 chưa trả lời; Cloudinary chưa có `CLOUDINARY_URL` trên Mac mini; `asset_folder` chưa làm.
+- Cách Claude tự thử giao diện mà không đụng máy chủ dự án: DB riêng `feveid_claude` trong container `feveid-postgres`, backend tạm cổng 8081 (profile dev, tài khoản HR test tự tạo), Vite tạm 5174 proxy sang 8081; xong thì xóa DB + config tạm. Trước khi thử upload thật thì đẩy sequence id sự kiện lên cao (vd 900000) để không ghi đè ảnh dev thật trên Cloudinary. Đọc `FEVeID_BackEnd/.env` bị chặn trong phiên Claude.
+- Bài học 25/11: chủ dự án đổi nhánh trong Sourcetree/IntelliJ ngay trên thư mục Claude đang làm → Claude luôn chạy `git branch --show-current` trước commit/push; việc song song dùng git worktree.
+
+### Bài 10 đã làm gì (24–25/11)
+- Backend `feveid/event/`: `events` + `event_phases` (V8). Trạng thái hiển thị tính lúc đọc: `EventStatusCalculator.compute(publication, phaseSlots, now)`; lịch kiểm tra bằng `PhaseScheduleValidator`. `/api/events` chỉ HR/PRESIDENT: CRUD, `PUT /{id}/phases` (thay cả lịch), `POST /{id}/phases/{phaseId}/start-now`, `publish`, `cancel` (vĩnh viễn), `DELETE` chỉ DRAFT. Sự kiện thuộc cả CLB, không có ban phụ trách; `owner` để trống được.
+- Upload ảnh `common/upload/`: `ImageValidator` (magic bytes JPEG/PNG/WebP, ≤ 10MB) → `ImageStorage` (interface) → `CloudinaryImageStorage` (`cloudinary-http5` 2.6.0, `app.cloudinary.url=${CLOUDINARY_URL:}`, trống → 502). `PUT/DELETE /api/events/{id}/banner`, `public_id=feveid/events/{id}/banner` + `overwrite=true`. Test dùng `@MockitoBean ImageStorage`. Multipart 10MB → 413. Dùng lại cho avatar sau này.
+- Frontend: `src/events/` (`eventApi`, `eventQueries` + `useEventMutation`, `eventLabels`, `EventInfoForm`, `PhaseSchedule` với `Form.List`, `BannerSection`), `src/pages/events/` (`/app/events`, `/new`, `/:id`), `src/lib/time.ts` (dayjs, hiển thị `Asia/Ho_Chi_Minh`), `api.upload` (FormData, không tự đặt Content-Type). Ảnh hiển thị qua `bannerThumb(url, width)` = `w_…,c_limit,f_auto,q_auto`.
+- Cloudinary: cloud `uxnv0tiq`, API key "FEVeID". `CLOUDINARY_URL` trong `FEVeID_BackEnd/.env` từng máy (laptop có; **Mac mini chưa có**). Tài khoản mới dùng *dynamic folders* → ảnh nằm ở thư mục gốc Media Library, tìm bằng ô search (`feveid/events`); muốn hiện đúng thư mục thì thêm `asset_folder` khi upload (chưa làm).
 
 ### Bài 9 đã làm gì (23–24/11)
 - **PR #30 – JWT trong cookie httpOnly** (chủ dự án chọn cookie thay vì localStorage):
