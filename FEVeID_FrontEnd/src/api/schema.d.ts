@@ -197,6 +197,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/events/{eventId}/registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Khách đăng ký sự kiện
+         * @description Chỉ sự kiện PUBLIC. 403 nếu sự kiện chỉ dành cho thành viên; 409 nếu ngoài giờ đăng ký, email đã đăng ký, hết chỗ
+         */
+        post: operations["register_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -711,6 +731,13 @@ export interface components {
             /** Format: date-time */
             cancelledAt?: string;
         };
+        GuestRegistrationRequest: {
+            fullName: string;
+            /** Format: email */
+            email: string;
+            phone: string;
+            school: string;
+        };
         LoginRequest: {
             /** Format: email */
             email: string;
@@ -1169,6 +1196,32 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["RegistrationResponse"];
+                };
+            };
+        };
+    };
+    register_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuestRegistrationRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {

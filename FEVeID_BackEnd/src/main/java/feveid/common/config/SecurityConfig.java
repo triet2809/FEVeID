@@ -67,6 +67,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/departments", "/api/departments/*").permitAll()
                         // Trang sự kiện cho khách: controller tự lọc theo đã đăng nhập hay chưa
                         .requestMatchers(HttpMethod.GET, "/api/public/events", "/api/public/events/*").permitAll()
+                        // Khách đăng ký không cần tài khoản (không có cookie access_token nên CSRF cũng bỏ qua)
+                        .requestMatchers(HttpMethod.POST, "/api/public/events/*/registrations").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
