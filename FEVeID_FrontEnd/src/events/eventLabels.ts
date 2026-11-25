@@ -29,7 +29,11 @@ export const PHASE_KIND_LABELS: Record<PhaseKind, string> = {
 };
 
 // Tên giai đoạn tùy chỉnh ("Check-in", "Biểu diễn"). Ẩn khi trùng nhãn trạng thái để khỏi hiện 2 lần "Sắp diễn ra"
-export function phaseNameToShow(event: EventResponse): string | undefined {
+// Nhận cả EventResponse (trang quản lý) lẫn PublicEventResponse (trang công khai): chỉ cần 2 field này
+export function phaseNameToShow(event: {
+  status: EventStatus;
+  currentPhaseName?: string;
+}): string | undefined {
   const name = event.currentPhaseName;
   return name && name !== STATUS_TAGS[event.status].label ? name : undefined;
 }

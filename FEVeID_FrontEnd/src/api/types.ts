@@ -15,3 +15,11 @@ export type EventVisibility = EventResponse["visibility"];
 export type PhaseResponse = Schemas["PhaseResponse"];
 export type PhaseRequest = Schemas["PhaseRequest"];
 export type PhaseKind = PhaseResponse["kind"]; // UPCOMING | ONGOING | COMPLETED
+
+// Trang sự kiện công khai (khách + member) và đăng ký (Bài 11)
+export type PublicEventResponse = Schemas["PublicEventResponse"];
+export type RegistrationResponse = Schemas["RegistrationResponse"];
+export type RegistrationStatus = RegistrationResponse["status"]; // CONFIRMED | CANCELLED | ...
+export type GuestRegistrationRequest = Schemas["GuestRegistrationRequest"];
+export type MyRegistrationResponse = Schemas["MyRegistrationResponse"];
+export type EventRegistrationResponse = Schemas["EventRegistrationResponse"];

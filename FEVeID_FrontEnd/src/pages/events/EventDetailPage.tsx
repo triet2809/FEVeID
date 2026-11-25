@@ -37,6 +37,7 @@ import {
   useEventMutation,
 } from "../../events/eventQueries";
 import { PhaseSchedule } from "../../events/PhaseSchedule";
+import { RegistrationList } from "../../events/RegistrationList";
 import { formatDateTime } from "../../lib/time";
 
 // /app/events/:id  (useParams ≈ @PathVariable, nhưng luôn là chuỗi → tự đổi sang số)
@@ -200,6 +201,16 @@ function EventDetail({ event }: { event: EventResponse }) {
               label: "Ảnh banner",
               children: <BannerSection event={event} />,
             },
+            // Bản nháp chưa ai đăng ký được nên chỉ hiện tab khi đã công bố (kể cả đã hủy, để xem lại)
+            ...(event.publication === "DRAFT"
+              ? []
+              : [
+                  {
+                    key: "registrations",
+                    label: "Đăng ký",
+                    children: <RegistrationList event={event} />,
+                  },
+                ]),
           ]}
         />
       </Card>
