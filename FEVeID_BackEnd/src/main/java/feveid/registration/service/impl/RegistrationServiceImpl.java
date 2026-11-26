@@ -1,5 +1,6 @@
 package feveid.registration.service.impl;
 
+import feveid.common.exception.BadRequestException;
 import feveid.common.exception.ConflictException;
 import feveid.common.exception.ForbiddenException;
 import feveid.common.exception.NotFoundException;
@@ -11,6 +12,9 @@ import feveid.event.schedule.EventStatusCalculator;
 import feveid.event.schedule.RegistrationWindow;
 import feveid.member.entity.Member;
 import feveid.member.repository.MemberRepository;
+import feveid.registration.checkin.CheckInCodes;
+import feveid.registration.dto.CheckInCodeResponse;
+import feveid.registration.dto.CheckInResponse;
 import feveid.registration.dto.EventRegistrationResponse;
 import feveid.registration.dto.GuestRegistrationRequest;
 import feveid.registration.dto.MyRegistrationResponse;
@@ -38,6 +42,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     public static final String FULL = "Sự kiện đã hết chỗ";
     public static final String MEMBERS_ONLY = "Sự kiện chỉ dành cho thành viên CLB";
     public static final String EMAIL_ALREADY_REGISTERED = "Email này đã đăng ký sự kiện";
+    public static final String NOT_ONGOING = "Chỉ check-in được khi sự kiện đang diễn ra";
+    public static final String INVALID_CODE = "Mã check-in không đúng hoặc đã hết hạn, hãy quét lại mã trên màn hình";
+    public static final String REGISTRATION_NOT_FOUND = "Không tìm thấy đăng ký";
+    public static final String NOT_CHECKABLE = "Đăng ký này không còn hiệu lực để check-in";
 
     private final RegistrationRepository registrationRepository;
     private final EventRepository eventRepository;
@@ -168,6 +176,56 @@ public class RegistrationServiceImpl implements RegistrationService {
         return registrationRepository.findByEventIdOrderByCreatedAtAscIdAsc(eventId).stream()
                 .map(EventRegistrationResponse::from)
                 .toList();
+    }
+
+    // ---------- Check-in (Bài 12) ----------
+
+    // Chỉ đọc nên không cần khóa. Mã tính lại mỗi lần gọi (CheckInCodes), không ghi gì vào DB
+    @Override
+    @Transactional(readOnly = true)
+    public CheckInCodeResponse getCheckInCode(Long eventId) {
+        Instant now = clock.instant();
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
+        if (statusOf(event, now) != EventStatus.ONGOING) {
+            throw new ConflictException(NOT_ONGOING);
+        }
+        return new CheckInCodeResponse(
+                CheckInCodes.codeAt(event.getCheckInSecret(), now),
+                CheckInCodes.expiresAt(now),
+                registrationRepository.countByEventIdAndStatus(eventId, RegistrationStatus.CHECKED_IN),
+                registrationRepository.countByEventIdAndStatusIn(eventId, RegistrationStatus.ACTIVE));
+    }
+
+    // LÕI – chủ dự án tự viết. Thứ tự giống register(): khóa -> kiểm tra -> ghi
+    @Override
+    @Transactional
+    public CheckInResponse checkIn(String email, Long eventId, String code) {
+        // TODO 1. now từ clock, member từ email (findMember)
+        // TODO 2. Khóa dòng sự kiện (lockPublishedEvent: không có / bản nháp -> 404)
+        // TODO 3. Không ONGOING -> ConflictException(NOT_ONGOING)
+        // TODO 4. Mã sai / hết hạn -> BadRequestException(INVALID_CODE)   (CheckInCodes.verify)
+        // TODO 5. Tìm đăng ký còn hiệu lực của member (findByEventIdAndMemberIdAndStatusIn ... ACTIVE):
+        //         - CHECKED_IN       -> trả về luôn, không ghi gì (quét lần 2 vẫn 200)
+        //         - CONFIRMED        -> chuyển CHECKED_IN, checkedInAt = now, checkedInBy = null (tự quét)
+        //         - PENDING_PAYMENT  -> ConflictException(NOT_CHECKABLE) (chưa thanh toán, Bài 18)
+        //         - không có         -> còn chỗ (ensureSeatAvailable) thì tạo đăng ký mới CHECKED_IN
+        // TODO 6. return CheckInResponse.from(...) (đăng ký mới thì nhớ save)
+        throw new UnsupportedOperationException("TODO: Bài 12.2b");
+    }
+
+    // LÕI – chủ dự án tự viết
+    @Override
+    @Transactional
+    public EventRegistrationResponse checkInManually(String staffEmail, Long eventId, Long registrationId) {
+        // TODO 1. now, staff = findMember(staffEmail)
+        // TODO 2. Khóa dòng sự kiện (cùng khóa với checkIn: member tự quét + HR bấm tay cùng lúc không chen nhau)
+        // TODO 3. Không ONGOING -> ConflictException(NOT_ONGOING)
+        // TODO 4. Đăng ký phải thuộc sự kiện này (findByIdAndEventId), không thì NotFoundException(REGISTRATION_NOT_FOUND)
+        // TODO 5. CHECKED_IN -> trả về luôn; CONFIRMED -> CHECKED_IN, checkedInAt = now, checkedInBy = staff;
+        //         trạng thái khác -> ConflictException(NOT_CHECKABLE)
+        // TODO 6. return EventRegistrationResponse.from(...)
+        throw new UnsupportedOperationException("TODO: Bài 12.2b");
     }
 
     // Dùng chung cho cancel() và cờ cancellable ở "Sự kiện của tôi": nút Hủy hiện ra thì bấm phải được

@@ -60,4 +60,13 @@ public class Registration {
 
     @Column(name = "cancelled_at")
     private Instant cancelledAt;
+
+    // Có giá trị <=> status = CHECKED_IN (CHECK trong V11)
+    @Column(name = "checked_in_at")
+    private Instant checkedInAt;
+
+    // null = tự quét QR; có giá trị = HR/BCN check-in tay
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "checked_in_by_member_id")
+    private Member checkedInBy;
 }
