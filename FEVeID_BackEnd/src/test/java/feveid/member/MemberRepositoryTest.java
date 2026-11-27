@@ -8,7 +8,9 @@ import feveid.member.enums.MemberStatus;
 import feveid.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import feveid.support.DatabaseCleaner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,6 +27,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 public class MemberRepositoryTest {
     @Autowired
+    JdbcTemplate jdbcTemplate;
+    @Autowired
     AccountRepository accountRepository;
     @Autowired
     MemberRepository memberRepository;
@@ -32,8 +36,7 @@ public class MemberRepositoryTest {
     private Account account;
     @BeforeEach
     void setUp(){
-        memberRepository.deleteAll();
-        accountRepository.deleteAll();
+        DatabaseCleaner.clean(jdbcTemplate);
         account = accountRepository.save(Account.builder()
                 .email("member@feveid.test")
                 .passwordHash("not-used-here")

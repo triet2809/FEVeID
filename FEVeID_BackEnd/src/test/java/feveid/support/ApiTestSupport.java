@@ -54,16 +54,7 @@ public abstract class ApiTestSupport {
     protected JdbcTemplate jdbcTemplate;
 
     protected void cleanDatabase() {
-        // Sổ cái điểm trỏ tới members, terms, events → dọn đầu tiên. Trigger V12 chặn DELETE từng dòng,
-        // còn TRUNCATE (xóa cả bảng một lần) không kích hoạt trigger theo dòng
-        jdbcTemplate.execute("TRUNCATE point_transactions");
-        registrationRepository.deleteAll(); // trỏ tới events và members → xóa tiếp theo
-        eventRepository.deleteAll();        // events trỏ tới members → xóa trước (event_phases, event_staff xóa theo)
-        membershipRepository.deleteAll();   // bảng con (có khóa ngoại tới members và departments) → xóa trước
-        departmentRepository.deleteAll();
-        memberRepository.deleteAll();
-        accountRepository.deleteAll();
-        termRepository.deleteAll(); // sổ cái điểm đã được dọn ở trên
+        DatabaseCleaner.clean(jdbcTemplate);
     }
 
     protected Member createMember(String email, AccountRole role, String fullName) {
