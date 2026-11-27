@@ -33,6 +33,7 @@ public class EventStaffServiceImpl implements EventStaffService {
     // Thông báo lỗi dùng chung với test (EventStaffTest)
     public static final String EVENT_NOT_FOUND = "Không tìm thấy sự kiện";
     public static final String EVENT_CANCELLED = "Sự kiện đã hủy, không thể sửa team";
+    public static final String EVENT_FINALIZED = "Sự kiện đã chốt, không thể sửa team";
     public static final String DUPLICATE_MEMBER = "Mỗi thành viên chỉ có một vai trò trong sự kiện";
     public static final String MEMBER_NOT_FOUND = "Thành viên không tồn tại";
     public static final String MEMBER_DISQUALIFIED = "Thành viên đã bị loại khỏi CLB, không thể thêm vào team";
@@ -59,6 +60,10 @@ public class EventStaffServiceImpl implements EventStaffService {
                 .orElseThrow(() -> new NotFoundException(EVENT_NOT_FOUND));
         if (event.getPublication() == EventPublication.CANCELLED) {
             throw new ConflictException(EVENT_CANCELLED);
+        }
+        // Đã chốt thì điểm đã phát theo team lúc chốt -> sửa team lúc này không còn ý nghĩa
+        if (event.isFinalized()) {
+            throw new ConflictException(EVENT_FINALIZED);
         }
 
         List<StaffAssignmentRequest> assignments = request.staff();

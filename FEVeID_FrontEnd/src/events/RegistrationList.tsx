@@ -61,9 +61,12 @@ function matches(row: EventRegistrationResponse, keyword: string): boolean {
 }
 
 // Tab "Đăng ký & check-in" trong trang quản lý sự kiện (HR/BCN).
-// Đang diễn ra (ONGOING): danh sách tự tải lại 10 giây/lần, có nút check-in tay và nút mở màn hình QR
+// Đang diễn ra (ONGOING): danh sách tự tải lại 10 giây/lần, có nút check-in tay và nút mở màn hình QR.
+// Đã kết thúc mà chưa chốt: vẫn check-in tay được (check-in bù cho người quên quét mã)
 export function RegistrationList({ event }: { event: EventResponse }) {
   const ongoing = event.status === "ONGOING";
+  const canCheckInManually =
+    ongoing || (event.status === "COMPLETED" && !event.finalizedAt);
   const registrations = useEventRegistrations(event.id, ongoing);
   const manual = useManualCheckIn(event.id);
   const [keyword, setKeyword] = useState("");
@@ -77,7 +80,7 @@ export function RegistrationList({ event }: { event: EventResponse }) {
       render: (_, row) => {
         if (row.checkedInAt) return formatDateTime(row.checkedInAt);
         // Chỉ đăng ký đã xác nhận mới check-in tay được (khớp checkInManually bên backend)
-        if (ongoing && row.status === "CONFIRMED") {
+        if (canCheckInManually && row.status === "CONFIRMED") {
           return (
             <Button
               size="small"

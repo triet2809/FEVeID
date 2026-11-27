@@ -85,6 +85,14 @@ public class Event {
     @Builder.Default
     private List<EventPhase> phases = new ArrayList<>();
 
+    // Chốt sự kiện (Bài 13.2): null = chưa chốt. Đã chốt thì khóa team, check-in tay và không chốt lại được
+    @Column(name = "finalized_at")
+    private Instant finalizedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "finalized_by_member_id")
+    private Member finalizedBy;
+
     // Bí mật để tạo mã QR check-in (CheckInCodes). Không bao giờ trả ra API, không đổi sau khi tạo
     @Column(name = "check_in_secret", nullable = false, updatable = false)
     private byte[] checkInSecret;
@@ -106,6 +114,10 @@ public class Event {
             checkInSecret = new byte[32];
             SECURE_RANDOM.nextBytes(checkInSecret);
         }
+    }
+
+    public boolean isFinalized() {
+        return finalizedAt != null;
     }
 
     // Khách (chưa đăng nhập) có thấy sự kiện này trên trang công khai không, chưa xét đã công bố hay chưa

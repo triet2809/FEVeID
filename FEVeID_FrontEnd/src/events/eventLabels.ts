@@ -3,6 +3,7 @@ import type {
   EventStatus,
   EventVisibility,
   PhaseKind,
+  StaffRole,
 } from "../api/types";
 
 // Record<enum, ...>: backend thêm trạng thái mới → sinh lại schema.d.ts → TS báo thiếu ở đây
@@ -52,3 +53,12 @@ export function isLocked(event: EventResponse): boolean {
 export function bannerThumb(url: string, width: number): string {
   return url.replace("/upload/", `/upload/w_${width},c_limit,f_auto,q_auto/`);
 }
+
+// Vai trò trong team sự kiện (Bài 13). Record<enum>: backend thêm vai trò → TS báo thiếu ở đây
+export const STAFF_ROLE_LABELS: Record<
+  StaffRole,
+  { label: string; color: string }
+> = {
+  ORGANIZER: { label: "Tổ chức", color: "purple" },
+  SUPPORTER: { label: "Hỗ trợ", color: "blue" },
+};

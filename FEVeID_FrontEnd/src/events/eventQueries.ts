@@ -1,8 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { App } from "antd";
 import { errorMessage } from "../api/client";
-import type { EventResponse } from "../api/types";
-import { fetchEvent, fetchEvents, fetchMembers } from "./eventApi";
+import type {
+  EventResponse,
+  FinalizeEventRequest,
+  StaffAssignmentRequest,
+} from "../api/types";
+import { POINTS_KEY } from "../points/pointQueries";
+import {
+  eventRegistrationsKey,
+  MY_REGISTRATIONS_KEY,
+} from "../registrations/registrationQueries";
+import {
+  fetchEvent,
+  fetchEventStaff,
+  fetchEvents,
+  fetchFinalization,
+  fetchMembers,
+  finalizeEvent,
+  replaceEventStaff,
+} from "./eventApi";
 
 // Khóa cache (giống tên cache trong @Cacheable("events")). Danh sách và từng sự kiện là 2 khóa khác nhau:
 //   ["events"]      → danh sách
@@ -40,6 +57,65 @@ export function useEventMutation<TVariables>(
       queryClient.setQueryData(eventKey(event.id), event);
       queryClient.invalidateQueries({ queryKey: EVENTS_KEY, exact: true }); // exact: chỉ danh sách, không đụng bản vừa ghi
       message.success(successMessage);
+    },
+    onError: (err) => message.error(errorMessage(err)),
+  });
+}
+
+// ---------- Team sự kiện (Bài 13.1) ----------
+
+export const eventStaffKey = (id: number) => ["event-staff", id] as const;
+export const finalizationKey = (id: number) => ["finalization", id] as const;
+
+export function useEventStaff(id: number) {
+  return useQuery({
+    queryKey: eventStaffKey(id),
+    queryFn: () => fetchEventStaff(id),
+  });
+}
+
+// Lưu team xong: ghi thẳng danh sách mới vào cache + làm mới màn chốt (danh sách tick sẵn lấy từ team)
+export function useReplaceEventStaff(id: number) {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: (staff: StaffAssignmentRequest[]) =>
+      replaceEventStaff(id, staff),
+    onSuccess: (staff) => {
+      queryClient.setQueryData(eventStaffKey(id), staff);
+      queryClient.invalidateQueries({ queryKey: finalizationKey(id) });
+      message.success("Đã lưu team");
+    },
+    onError: (err) => message.error(errorMessage(err)),
+  });
+}
+
+// ---------- Chốt sự kiện (Bài 13.2) ----------
+
+export function useFinalization(id: number) {
+  return useQuery({
+    queryKey: finalizationKey(id),
+    queryFn: () => fetchFinalization(id),
+  });
+}
+
+// Chốt xong, nhiều thứ đổi cùng lúc ở backend (giống 1 @Transactional sửa nhiều bảng) → làm mới từng cache liên quan:
+//   sự kiện (finalizedAt), danh sách đăng ký (CONFIRMED → NO_SHOW), "sự kiện của tôi", điểm của mọi người
+export function useFinalizeEvent(id: number) {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: (request: FinalizeEventRequest) => finalizeEvent(id, request),
+    onSuccess: (result) => {
+      queryClient.setQueryData(finalizationKey(id), result);
+      queryClient.invalidateQueries({ queryKey: eventKey(id) });
+      queryClient.invalidateQueries({ queryKey: EVENTS_KEY, exact: true });
+      queryClient.invalidateQueries({ queryKey: eventRegistrationsKey(id) });
+      queryClient.invalidateQueries({ queryKey: MY_REGISTRATIONS_KEY });
+      queryClient.invalidateQueries({ queryKey: POINTS_KEY });
+      message.success(`Đã chốt sự kiện, phát ${result.totalPoints} điểm`);
     },
     onError: (err) => message.error(errorMessage(err)),
   });

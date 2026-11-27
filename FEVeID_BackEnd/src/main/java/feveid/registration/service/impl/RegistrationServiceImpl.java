@@ -42,6 +42,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     public static final String INVALID_CODE = "Mã check-in không đúng hoặc đã hết hạn, hãy quét lại mã trên màn hình";
     public static final String REGISTRATION_NOT_FOUND = "Không tìm thấy đăng ký";
     public static final String NOT_CHECKABLE = "Đăng ký này không còn hiệu lực để check-in";
+    public static final String FINALIZED = "Sự kiện đã chốt, không thể check-in thêm";
 
     private final RegistrationRepository registrationRepository;
     private final EventRepository eventRepository;
@@ -246,7 +247,13 @@ public class RegistrationServiceImpl implements RegistrationService {
         Member staff = findMember(staffEmail);
         // Cùng khóa với checkIn(): member tự quét với HR bấm tay cùng lúc thì lần lượt từng người
         Event event = lockPublishedEvent(eventId, now);
-        if (statusOf(event, now) != EventStatus.ONGOING) {
+        // Check-in bù (chốt 27/11): HR check-in tay được cả sau khi kết thúc, cho tới lúc chốt sự kiện.
+        // Member tự quét QR thì vẫn chỉ trong ONGOING (checkIn ở trên)
+        if (event.isFinalized()) {
+            throw new ConflictException(FINALIZED);
+        }
+        EventStatus status = statusOf(event, now);
+        if (status != EventStatus.ONGOING && status != EventStatus.COMPLETED) {
             throw new ConflictException(NOT_ONGOING);
         }
         // Đăng kí phải thuộc đúng sự kiện trên URL

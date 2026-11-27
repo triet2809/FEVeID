@@ -31,4 +31,8 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
     // Lịch sử, mới nhất trước. Lấy kèm kỳ, sự kiện, người ghi trong 1 câu SELECT (tránh N+1)
     @EntityGraph(attributePaths = {"term", "event", "createdBy"})
     List<PointTransaction> findByMemberIdOrderByCreatedAtDescIdDesc(Long memberId);
+
+    // Điểm đã phát khi chốt một sự kiện (ORGANIZE/SUPPORT/ATTEND), kèm member để hiện tên
+    @EntityGraph(attributePaths = {"member", "term"})
+    List<PointTransaction> findByEventIdOrderByIdAsc(Long eventId);
 }
