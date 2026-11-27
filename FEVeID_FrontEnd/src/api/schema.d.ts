@@ -112,6 +112,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{eventId}/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Xem team sự kiện
+         * @description Người tổ chức trước, rồi theo tên
+         */
+        get: operations["getStaff"];
+        /**
+         * Thay cả team
+         * @description Gửi danh sách đầy đủ; ai không có trong list bị gỡ. Mỗi người một vai trò. Khóa khi đã hủy
+         */
+        put: operations["replaceStaff"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments/{id}": {
         parameters: {
             query?: never;
@@ -861,6 +885,23 @@ export interface components {
         PhaseScheduleRequest: {
             phases: components["schemas"]["PhaseRequest"][];
         };
+        EventStaffRequest: {
+            staff: components["schemas"]["StaffAssignmentRequest"][];
+        };
+        StaffAssignmentRequest: {
+            /** Format: int64 */
+            memberId: number;
+            /** @enum {string} */
+            role: "ORGANIZER" | "SUPPORTER";
+        };
+        EventStaffResponse: {
+            /** Format: int64 */
+            memberId: number;
+            fullName: string;
+            studentCode?: string;
+            /** @enum {string} */
+            role: "ORGANIZER" | "SUPPORTER";
+        };
         DepartmentRequest: {
             name: string;
             description?: string;
@@ -1327,6 +1368,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["EventResponse"];
+                };
+            };
+        };
+    };
+    getStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventStaffResponse"][];
+                };
+            };
+        };
+    };
+    replaceStaff: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventStaffRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventStaffResponse"][];
                 };
             };
         };
