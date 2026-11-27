@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -49,15 +50,20 @@ public abstract class ApiTestSupport {
     protected EventRepository eventRepository;
     @Autowired
     protected RegistrationRepository registrationRepository;
+    @Autowired
+    protected JdbcTemplate jdbcTemplate;
 
     protected void cleanDatabase() {
-        registrationRepository.deleteAll(); // trỏ tới events và members → xóa đầu tiên
+        // Sổ cái điểm trỏ tới members, terms, events → dọn đầu tiên. Trigger V12 chặn DELETE từng dòng,
+        // còn TRUNCATE (xóa cả bảng một lần) không kích hoạt trigger theo dòng
+        jdbcTemplate.execute("TRUNCATE point_transactions");
+        registrationRepository.deleteAll(); // trỏ tới events và members → xóa tiếp theo
         eventRepository.deleteAll();        // events trỏ tới members → xóa trước (event_phases xóa theo)
         membershipRepository.deleteAll();   // bảng con (có khóa ngoại tới members và departments) → xóa trước
         departmentRepository.deleteAll();
         memberRepository.deleteAll();
         accountRepository.deleteAll();
-        termRepository.deleteAll(); // chưa có khóa ngoại nên thứ tự nào cũng được (sau này sổ cái điểm sẽ trỏ tới)
+        termRepository.deleteAll(); // sổ cái điểm đã được dọn ở trên
     }
 
     protected Member createMember(String email, AccountRole role, String fullName) {
