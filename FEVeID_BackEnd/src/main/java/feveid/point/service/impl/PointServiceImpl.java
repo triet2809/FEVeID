@@ -87,7 +87,7 @@ public class PointServiceImpl implements PointService {
                 ? termRepository.findById(request.termId())
                 .orElseThrow(() -> new  NotFoundException(TERM_NOT_FOUND))
                 : currentTerm()
-                .orElseThrow(() -> new NotFoundException(NO_CURRENT_TERM));
+                .orElseThrow(() -> new ConflictException(NO_CURRENT_TERM));
         // 4. Số dư của kì đó sau điều chỉnh không được âm
         // Chỉ đúng vì được khóa ở bước 2
         long balance = pointTransactionRepository.balanceOf(member.getId(), term.getId());
