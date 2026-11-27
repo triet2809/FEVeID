@@ -8,7 +8,9 @@ import feveid.account.enums.AccountStatus;
 import feveid.account.repository.AccountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import feveid.support.DatabaseCleaner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
@@ -30,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 public class AuthLoginTest {
+    @Autowired
+    JdbcTemplate jdbcTemplate;
     private static final String PASSWORD = "Secret123";
 
     @Autowired
@@ -43,7 +47,7 @@ public class AuthLoginTest {
 
     @BeforeEach
     void cleanDatabase() {
-        accountRepository.deleteAll();
+        DatabaseCleaner.clean(jdbcTemplate);
     }
 
     private Account createAccount(String email, AccountStatus status) {

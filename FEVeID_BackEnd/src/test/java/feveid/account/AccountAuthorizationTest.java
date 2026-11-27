@@ -8,7 +8,9 @@ import feveid.account.repository.AccountRepository;
 import feveid.auth.security.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import feveid.support.DatabaseCleaner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
@@ -26,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 class AccountAuthorizationTest {
+    @Autowired
+    JdbcTemplate jdbcTemplate;
     private static final String PASSWORD = "Secret123";
     private static final String NEW_ACCOUNT_JSON = """
             {"email": "new@feveid.test", "password": "Secret123", "fullName": "Nguyen Van A"}
@@ -45,7 +49,7 @@ class AccountAuthorizationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        accountRepository.deleteAll();
+        DatabaseCleaner.clean(jdbcTemplate);
         createAccount("hr@feveid.test", AccountRole.HR);
         createAccount("president@feveid.test", AccountRole.PRESIDENT);
         member = createAccount("member@feveid.test", AccountRole.MEMBER);

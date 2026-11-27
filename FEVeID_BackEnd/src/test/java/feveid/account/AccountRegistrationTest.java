@@ -14,7 +14,9 @@ import feveid.member.enums.MemberStatus;
 import feveid.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import feveid.support.DatabaseCleaner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
@@ -36,6 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 class AccountRegistrationTest {
+    @Autowired
+    JdbcTemplate jdbcTemplate;
     private final static String PASSWORD = "secret1123";
 
     @Autowired
@@ -53,8 +57,7 @@ class AccountRegistrationTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        memberRepository.deleteAll();
-        accountRepository.deleteAll();
+        DatabaseCleaner.clean(jdbcTemplate);
         accountRepository.save(Account.builder()
                 .email("hr@feveid.test")
                 .role(AccountRole.HR)
