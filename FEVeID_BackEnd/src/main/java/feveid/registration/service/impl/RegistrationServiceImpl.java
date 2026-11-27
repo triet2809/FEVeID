@@ -13,12 +13,7 @@ import feveid.event.schedule.RegistrationWindow;
 import feveid.member.entity.Member;
 import feveid.member.repository.MemberRepository;
 import feveid.registration.checkin.CheckInCodes;
-import feveid.registration.dto.CheckInCodeResponse;
-import feveid.registration.dto.CheckInResponse;
-import feveid.registration.dto.EventRegistrationResponse;
-import feveid.registration.dto.GuestRegistrationRequest;
-import feveid.registration.dto.MyRegistrationResponse;
-import feveid.registration.dto.RegistrationResponse;
+import feveid.registration.dto.*;
 import feveid.registration.entity.Registration;
 import feveid.registration.enums.RegistrationStatus;
 import feveid.registration.repository.RegistrationRepository;
@@ -30,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -201,31 +197,70 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     @Transactional
     public CheckInResponse checkIn(String email, Long eventId, String code) {
-        // TODO 1. now từ clock, member từ email (findMember)
-        // TODO 2. Khóa dòng sự kiện (lockPublishedEvent: không có / bản nháp -> 404)
-        // TODO 3. Không ONGOING -> ConflictException(NOT_ONGOING)
-        // TODO 4. Mã sai / hết hạn -> BadRequestException(INVALID_CODE)   (CheckInCodes.verify)
-        // TODO 5. Tìm đăng ký còn hiệu lực của member (findByEventIdAndMemberIdAndStatusIn ... ACTIVE):
-        //         - CHECKED_IN       -> trả về luôn, không ghi gì (quét lần 2 vẫn 200)
-        //         - CONFIRMED        -> chuyển CHECKED_IN, checkedInAt = now, checkedInBy = null (tự quét)
-        //         - PENDING_PAYMENT  -> ConflictException(NOT_CHECKABLE) (chưa thanh toán, Bài 18)
-        //         - không có         -> còn chỗ (ensureSeatAvailable) thì tạo đăng ký mới CHECKED_IN
-        // TODO 6. return CheckInResponse.from(...) (đăng ký mới thì nhớ save)
-        throw new UnsupportedOperationException("TODO: Bài 12.2b");
+        Instant now = clock.instant();
+        Member member = findMember(email);
+        // 1. Khóa dòng sự kiện trước: member bấm 5 lần hoặc 8 người giành chỗ cuối sẽ phải xếp hàng ở đây
+        // không có / không thấy bản nháp -> 404
+        Event event = lockPublishedEvent(eventId, now);
+        // 2. chỉ check in trong giai đoạn ONGOING
+        if (statusOf(event, now) != EventStatus.ONGOING) {
+            throw new ConflictException(NOT_ONGOING);
+        }
+        // 3. Mã sai, của sự kiện khác, hoặc quá 60 giây
+        if (!CheckInCodes.verify(event.getCheckInSecret(), code, now)) {
+            throw new BadRequestException(INVALID_CODE);
+        }
+        // 4. đã có đăng kí còn hiệu lực --> xử lý theo trạng thái
+        Optional<Registration> found = registrationRepository.findByEventIdAndMemberIdAndStatusIn(eventId, member.getId(), RegistrationStatus.ACTIVE);
+        if (found.isPresent()) {
+            Registration registration = found.get();
+            if (registration.getStatus() == RegistrationStatus.CONFIRMED) {
+                // Entity đang được Hibernate theo dõi -> tự UPDATE khi commit, không cần save()
+                registration.setStatus(RegistrationStatus.CHECKED_IN);
+                registration.setCheckedInAt(now);
+            } else if (registration.getStatus() != RegistrationStatus.CHECKED_IN) {
+                // PENDING_PAYMENT: Chưa thanh toán
+                throw new ConflictException(NOT_CHECKABLE);
+            }
+            // CHECKED_IN rồi: không ghi gì, trả về giờ checkin lần đầu
+            return CheckInResponse.from(registration);
+        }
+        // 5. Chưa đăng kí mà có mặt: Còn chỗ thì tạo đăng kí check in luôn
+        // Bỏ qua giờ mở đăng kí, nhưng vẫn tính số chỗ -> chỉ đúng vì đã khóa ở bước 1
+        ensureSeatAvailable(event);
+        Registration walkIn = Registration.builder()
+                .event(event)
+                .member(member)
+                .status(RegistrationStatus.CHECKED_IN)
+                .checkedInAt(now)
+                .build();
+        return CheckInResponse.from(registrationRepository.save(walkIn));
+
     }
 
-    // LÕI – chủ dự án tự viết
+    // HR/BCN checkin tay: dự phòng khi không quét được
     @Override
     @Transactional
     public EventRegistrationResponse checkInManually(String staffEmail, Long eventId, Long registrationId) {
-        // TODO 1. now, staff = findMember(staffEmail)
-        // TODO 2. Khóa dòng sự kiện (cùng khóa với checkIn: member tự quét + HR bấm tay cùng lúc không chen nhau)
-        // TODO 3. Không ONGOING -> ConflictException(NOT_ONGOING)
-        // TODO 4. Đăng ký phải thuộc sự kiện này (findByIdAndEventId), không thì NotFoundException(REGISTRATION_NOT_FOUND)
-        // TODO 5. CHECKED_IN -> trả về luôn; CONFIRMED -> CHECKED_IN, checkedInAt = now, checkedInBy = staff;
-        //         trạng thái khác -> ConflictException(NOT_CHECKABLE)
-        // TODO 6. return EventRegistrationResponse.from(...)
-        throw new UnsupportedOperationException("TODO: Bài 12.2b");
+        Instant now = clock.instant();
+        Member staff = findMember(staffEmail);
+        // Cùng khóa với checkIn(): member tự quét với HR bấm tay cùng lúc thì lần lượt từng người
+        Event event = lockPublishedEvent(eventId, now);
+        if (statusOf(event, now) != EventStatus.ONGOING) {
+            throw new ConflictException(NOT_ONGOING);
+        }
+        // Đăng kí phải thuộc đúng sự kiện trên URL
+        Registration registration = registrationRepository.findByIdAndEventId(registrationId, eventId)
+                .orElseThrow(() -> new NotFoundException(REGISTRATION_NOT_FOUND));
+        if (registration.getStatus() == RegistrationStatus.CONFIRMED) {
+            registration.setStatus(RegistrationStatus.CHECKED_IN);
+            registration.setCheckedInAt(now);
+            registration.setCheckedInBy(staff);
+        } else if (registration.getStatus() != RegistrationStatus.CHECKED_IN) {
+            // CANCELLED / EXPIRED / NO_SHOW / PENDING_PAYMENT
+            throw new ConflictException(NOT_CHECKABLE);
+        }
+        return EventRegistrationResponse.from(registration);
     }
 
     // Dùng chung cho cancel() và cờ cancellable ở "Sự kiện của tôi": nút Hủy hiện ra thì bấm phải được
