@@ -32,6 +32,8 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
   3. *Tiền / bảo mật*: như loại 2, thêm: chủ dự án giải thích được từng dòng lõi; test các ca gửi trùng, gửi giả, gửi đồng thời.
   - Quy tắc chung: không merge code mà chủ dự án không giải thích được. Khi giải thích luồng frontend, dùng ngôn ngữ đơn giản và so sánh với Spring (Route ≈ @GetMapping, useParams ≈ @PathVariable, RequireAuth ≈ Security filter, TanStack Query ≈ @Cacheable); tránh dồn nhiều thuật ngữ một lúc.
 - Hướng dẫn git: đưa cả thao tác Sourcetree lẫn lệnh git; nói rõ lệnh chạy trong shell nào.
+- **PR description không ghi tên Claude** (không có dòng "Generated with Claude Code"), chốt 27/11/2026.
+- Từ Bài 13 (27/11): chủ dự án nhờ Claude làm trọn bài (kể cả phần lõi "tiền"); luật "không merge code chưa giải thích được" vẫn giữ → cuối bài Claude đưa bản đồ luồng + câu hỏi về phần lõi.
 
 ### Quy trình Git / PR
 - `master` được bảo vệ (ruleset "protect master"): chỉ merge qua PR, **squash only**, bắt buộc check CI `build` xanh. Không push thẳng lên `master`.
@@ -55,8 +57,8 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 9 | Khởi tạo React (9.1 role trong `/me`, 9.2 JWT trong cookie httpOnly + CSRF, 9.3 khung `FEVeID_FrontEnd` + CI frontend, 9.4 login + layout/menu theo role) | ✅ PR #30, #31, #32, #33 |
 | 10 | CRUD sự kiện + upload ảnh (10.1 tính trạng thái, 10.2 CRUD + lịch giai đoạn, 10.3a kiểm tra ảnh, 10.3b Cloudinary, 10.4 trang quản lý sự kiện) | ✅ PR #36, #37, #38, #40, #41 |
 | 11 | Trang sự kiện công khai + đăng ký (11.1 API công khai, 11.2 member đăng ký + khóa chỗ, 11.3 khách đăng ký, 11.4 danh sách đăng ký, 11.5 frontend) | ✅ PR #43, #45, #46, #47, #48 |
-| 12 | Check-in + sổ cái điểm | |
-| 13 | Finalize sự kiện | |
+| 12 | Check-in + sổ cái điểm (12.1 sổ cái, 12.2 QR xoay vòng HMAC, 12.3 check-in tay; 12.4 vé QR khách dời sau MVP; 12.5 NO_SHOW chuyển sang Bài 13) | ✅ PR #50, #51, #54, #55 |
+| 13 | Finalize sự kiện (13.1 team sự kiện, lịch kỳ cố định, 13.2–13.4 chốt sự kiện backend + giao diện) | ✅ PR #57, #58, nhánh `feat/event-finalize` |
 | 14 | Deploy (đây là mốc MVP) | |
 | 14.5 | Landing page khu công khai + hiệu ứng (Motion), theo thiết kế chủ dự án tự làm | |
 | 15–17 | Shop / Journey, Dashboard, Thông báo | |
@@ -79,36 +81,39 @@ Ngày 25/11 (rạng sáng): xong Bài 10, nhanh hơn kế hoạch nhờ Claude v
 
 Ngày 25/11 (tối): xong Bài 11 trong 1 ngày (Claude viết phần lớn, chủ dự án gõ lõi 11.2 theo code mẫu). Nhanh hơn kế hoạch: MVP có thể sớm hơn 5–8/12.
 
+Ngày 27/11: xong Bài 12 (26–27/11) và Bài 13 (Claude làm trọn theo yêu cầu). Còn Bài 14 (Deploy) là tới MVP, sớm hơn kế hoạch 28/11–8/12.
+
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-25 tối (trên laptop Windows)_
+_Cập nhật: 2026-11-27 chiều (trên laptop Windows)_
 
-- **Bài 11 xong** (PR #43, #45, #46, #47, #48; docs #49). Master sạch, không còn nhánh dở. **Tiếp theo: Bài 12 – check-in + sổ cái điểm.**
-- **Kế hoạch Bài 12 (đề xuất, chốt lại với chủ dự án đầu bài):**
-  - 12.1 Sổ cái điểm `point_transactions` (append-only: member, term, số điểm, lý do, sự kiện nguồn; số dư = tổng giao dịch của kỳ hiện tại). Mẫu quen → Claude viết.
-  - 12.2 Check-in member bằng QR xoay vòng: màn hình HR/BCN hiện mã = HMAC(eventId + khung 30 giây, secret); member quét → `POST` mã → kiểm tra khung hiện tại (± 1 khung), sự kiện đang `ONGOING`, đăng ký `CONFIRMED` → `CHECKED_IN` + cộng 1 điểm **trong cùng transaction**, quét lại không cộng thêm. Loại **bảo mật** → học trước (HMAC, vì sao không gửi ảnh mã được) + test trước, chủ dự án tự viết lõi (tạo/kiểm mã, đổi trạng thái + cộng điểm), test các ca gửi trùng, mã giả, mã hết hạn, 2 lần quét đồng thời.
-  - 12.3 Check-in tay của HR từ tab "Đăng ký" (tìm tên/MSSV đã có), HR/BCN xem số đã check-in.
-  - 12.4 Khách: vé QR cá nhân qua email + link hủy có mã bí mật → cần gửi mail (có thể dời sau MVP).
-  - 12.5 Sự kiện `COMPLETED` → đăng ký `CONFIRMED` chưa check-in = `NO_SHOW` (tính lúc đọc hoặc job; quyết ở 12.5).
-- **Bài 11 đã làm gì (để Bài 12 dùng lại):**
-  - V9 `events.publicly_listed`: sự kiện INTERNAL vẫn hiện cho khách xem (không đăng ký được) nếu BCN chọn; PUBLIC luôn hiện. `Event.isVisibleToGuests()`.
-  - `GET /api/public/events` (`status`, `q`) + `/{id}`, permitAll: khách thấy PUBLIC + INTERNAL được hiện; đã đăng nhập thấy mọi sự kiện `PUBLISHED`; bản nháp/đã hủy/khách mở sự kiện ẩn → **404**. `PublicEventResponse` không có owner/publication, có `registrationOpen` (`RegistrationWindow.isOpen`). `Authentications.isSignedIn()` (khách = `AnonymousAuthenticationToken`, không phải null).
-  - V10 `registrations` (member **hoặc** khách `guest_*`, CHECK đúng 1 trong 2), 2 unique index một phần trên đăng ký còn hiệu lực (`RegistrationStatus.ACTIVE` = PENDING_PAYMENT/CONFIRMED/CHECKED_IN, phải khớp WHERE của index). Bài 11 chỉ dùng CONFIRMED + CANCELLED.
-  - Đăng ký: **khóa dòng sự kiện trước** (`EventRepository.findByIdForUpdate`, `PESSIMISTIC_WRITE`, không kèm EntityGraph vì Postgres không cho FOR UPDATE trên LEFT JOIN) → kiểm tra giờ → trùng → số chỗ → ghi. Member `POST /api/registrations {eventId}`; khách `POST /api/public/events/{id}/registrations` (PUBLIC; INTERNAL được hiện → 403 `ForbiddenException`; đã đăng nhập → 400). Member + khách dùng chung số chỗ. Test 8 luồng giành 1 chỗ: bỏ khóa thì cả 8 lọt; bấm 5 lần không khóa → 500 duplicate key.
-  - Hủy (member): `POST /api/registrations/{id}/cancel`, chỉ khi còn mở đăng ký; `canCancel()` dùng chung cho cờ `cancellable`. Khách **chưa hủy được** (cần link có mã bí mật gửi email → Bài 12).
-  - `GET /api/registrations/me` ("Sự kiện của tôi"), `GET /api/events/{id}/registrations` (HR/BCN, member + khách chung dạng, dùng cho check-in tay ở Bài 12).
-  - Frontend: `PublicLayout`, `/events`, `/events/:id` (`RegistrationPanel`), `/app/my-events`, tab "Đăng ký" trong trang quản lý. Khóa cache trang công khai có `signedIn`.
-  - Sinh `schema.d.ts` không cần chạy backend: test tạm gọi `/v3/api-docs` bằng MockMvc → file JSON → `npx openapi-typescript <file>`; xóa test tạm sau khi dùng.
-- **Còn treo từ Bài 11:**
-  - Câu hỏi kiểm tra 11.2–11.4 (vì sao khóa trước khi đếm; xóa `@Transactional` thì khóa vô dụng; 403 vs 404; member + khách chung khóa; N+1 nếu bỏ `@EntityGraph`) **do Claude trả lời theo yêu cầu**, chủ dự án chưa tự trả lời. Thí nghiệm đổi `findById` chưa làm. Bài 12 (check-in = tiền/bảo mật): hỏi lại ngắn 1 câu "vì sao khóa trước khi đếm" trước khi viết lõi.
-  - 11.5 chỉ kiểm tra mức nhẹ (lint + tsc + build). Chủ dự án **chưa báo đã bấm thử** luồng khách/member/HR trên trình duyệt → đầu Bài 12 hỏi lại; có lỗi giao diện thì sửa trước. Câu hỏi mức kiểm tra nhẹ/kỹ vẫn chưa trả lời.
-  - Câu hỏi frontend chưa trả lời: (11.5) vì sao khóa cache trang công khai có `signedIn`; nút đã khóa khi đang gửi thì backend còn cần chặn trùng không; ("sửa ở đâu") thêm cột "Địa điểm" vào "Sự kiện của tôi" sửa file nào; đổi nhãn "Đã đăng ký" sửa mấy file.
-  - Chưa hiện "còn X chỗ" ở trang công khai (cần đếm theo sự kiện, tránh N+1); khách đăng ký không xác minh email; chưa có wishlist.
-  - Tiêu đề squash vẫn để mặc định "Feat/…"/"Docs/…" ở #41, #45, #47, #48, #49 (sai quy ước `feat: ...`). Nhắc sửa ô tiêu đề lúc bấm Squash and merge.
-  - Bài học quy trình: tạo nhánh từ nhánh chưa merge → sau squash merge bị conflict (#44 phải đóng). Cách sửa không cần force-push: `git merge -X ours origin/master` vào nhánh sau rồi kiểm tra tree không đổi (`git rev-parse HEAD^{tree}` trước/sau). Force-push bị chặn trong phiên Claude.
-  - Chủ dự án hay nói "xong rồi" trước khi bấm Merge (#46 lúc đó vẫn mở) → luôn kiểm tra `git log origin/master`.
-- **Từ Bài 10 vẫn treo:** câu hỏi 10.3b/10.4 chưa trả lời; Cloudinary chưa có `CLOUDINARY_URL` trên Mac mini; `asset_folder` chưa làm.
-- Cách Claude tự thử giao diện mà không đụng máy chủ dự án: DB riêng `feveid_claude` trong container `feveid-postgres`, backend tạm cổng 8081 (profile dev, tài khoản HR test tự tạo), Vite tạm 5174 proxy sang 8081; xong thì xóa DB + config tạm. Trước khi thử upload thật thì đẩy sequence id sự kiện lên cao (vd 900000) để không ghi đè ảnh dev thật trên Cloudinary. Đọc `FEVeID_BackEnd/.env` bị chặn trong phiên Claude.
+- **Bài 13 xong về code.** Đã merge #57 (team sự kiện + sửa test dọn DB), #58 (lịch kỳ cố định). Nhánh `feat/event-finalize` (chốt sự kiện backend + giao diện) **chờ chủ dự án mở PR, đọc bản đồ luồng, trả lời câu hỏi rồi merge**. **Tiếp theo: Bài 14 – Deploy (mốc MVP).**
+- **Quyết định đã chốt 27/11:**
+  - Lịch kỳ cố định: Spring 01/01–30/04, Summer 01/05–31/08, Fall 01/09–31/12 (`TermSeason`). `POST /api/terms` nhận `{season, year}`, bỏ `PUT /api/terms/{id}`. `TermService.getOrCreateContaining(date)` tự tạo kỳ khi **ghi** điểm (`INSERT ... ON CONFLICT DO NOTHING`); chỗ chỉ đọc không tự tạo.
+  - Điểm sự kiện vào kỳ chứa **ngày kết thúc sự kiện** (giờ VN), không phải kỳ lúc bấm chốt.
+  - HR check-in tay được sau khi COMPLETED cho tới lúc chốt; member tự quét QR vẫn chỉ trong ONGOING.
+  - Chốt 1 lần, không mở lại; phát sai thì sửa bằng dòng ADJUSTMENT.
+  - Mức điểm `app.points.organize/support/attend` (4/2/1) trong `application.properties` (`PointRules`).
+- **Bài 12 đã làm gì (để các bài sau dùng lại):**
+  - `CheckInCodes`: mã = HMAC(secret của sự kiện, khung 30 giây), chấp nhận ±1 khung. V11: `events.check_in_secret`, `registrations.checked_in_at/checked_in_by_member_id`. Member chưa đăng ký mà có mặt (còn chỗ) → tạo đăng ký CHECKED_IN luôn (walk-in).
+  - V12 `point_transactions`: append-only (trigger chặn UPDATE/DELETE, dọn test bằng TRUNCATE), unique `(event_id, member_id)` cho ORGANIZE/SUPPORT/ATTEND. Số dư kỳ = SUM theo kỳ; tổng trọn đời không tính REDEEM/REFUND. HR điều chỉnh tay khóa dòng member trước khi tính số dư.
+  - Trang `/app/events/:id/check-in-screen` (QR xoay vòng), `/app/check-in` (member quét), `/app/points`, `/app/member-points`.
+- **Bài 13 đã làm gì:**
+  - V13 `event_staff` (mỗi người 1 vai trò ORGANIZER/SUPPORTER trong 1 sự kiện). `GET/PUT /api/events/{id}/staff`: PUT thay cả team, khóa dòng sự kiện, xóa bằng JPQL `@Modifying` (Hibernate flush INSERT trước DELETE nên `deleteAll(list)` đụng unique khi đổi vai trò).
+  - V14 `events.finalized_at/finalized_by_member_id`. `GET /api/events/{id}/finalization` (xem trước / kết quả đọc từ sổ cái), `POST` chốt: khóa dòng sự kiện → chưa chốt + COMPLETED → kiểm tra team → kỳ của ngày kết thúc → ghi sổ cái (tổ chức > hỗ trợ > tham gia, khách không điểm) → khóa sự kiện → CONFIRMED thành NO_SHOW (bulk UPDATE). Sau khi chốt: không sửa team, không check-in tay.
+  - Frontend: tab "Team" (`events/StaffSection.tsx`), tab "Chốt sự kiện"/"Kết quả chốt" (`events/FinalizationSection.tsx`), check-in bù trong tab Đăng ký.
+  - Test: 379 test xanh; các test đồng thời (lưu team, tự tạo kỳ, chốt) đã thử bỏ khóa/ON CONFLICT để xác nhận chúng đỏ thật. Claude đã bấm thử toàn luồng trên DB riêng (Postgres container tạm cổng 5544, backend 8081, Vite 5174).
+  - **Bài học CI 27/11:** CI Linux chạy class test theo thứ tự file system (Windows theo bảng chữ cái) → test cũ dọn DB bằng `deleteAll()` từng bảng xanh ở máy nhưng đỏ trên CI. Từ nay mọi test dọn DB bằng `DatabaseCleaner.clean(jdbcTemplate)` (TRUNCATE mọi bảng CASCADE). Thử ở máy: `./mvnw verify -Dsurefire.runOrder=reversealphabetical`.
+- **Câu hỏi kiểm tra còn treo:**
+  - 13.1 (trả lời 27/11): câu 1 (vì sao xóa bằng JPQL) chưa đúng, câu 2 (bỏ khóa thì sao) chưa biết, câu 3 (400 vs 404) nhầm với quy tắc 403/404 → Claude đã giải thích lại. Hỏi lại ngắn câu 2 khi review `feat/event-finalize`.
+  - Lịch kỳ (#58): "findContaining rồi save() khi 2 HR cùng cộng điểm ngày 01/01 thì sao"; "vì sao màn xem điểm không được tự tạo kỳ" — chưa trả lời.
+  - Chốt sự kiện: vì sao khóa dòng sự kiện; vì sao kỳ lấy theo ngày kết thúc; unique index V12 bảo vệ gì nếu code lỗi chạy 2 lần — chưa trả lời.
+  - Từ Bài 11 vẫn treo (xem lịch sử git của file này nếu cần): câu hỏi frontend 11.5, chưa hiện "còn X chỗ", khách chưa hủy được đăng ký, chưa có wishlist.
+- **Ghi chú kỹ thuật mới:**
+  - Postgres 17 từ chối múi giờ JVM `Asia/Saigon` (mặc định của Windows) khi chạy backend ngoài IntelliJ → thêm `-Duser.timezone=Asia/Ho_Chi_Minh`.
+  - antd 6.7: `List` đã lỗi thời (dùng `Listy` hoặc tự dựng bằng `Flex`).
+  - Dự án chưa khai báo prettier trong `package.json` (format khi lưu dùng extension của editor).
+- Cách Claude tự thử giao diện mà không đụng máy chủ dự án: Postgres container tạm riêng (image `postgres:17` có sẵn), backend tạm 8081 (profile dev, tài khoản HR test tự tạo, truyền mọi giá trị bằng tham số dòng lệnh vì `.env` bị chặn), Vite tạm 5174 proxy sang 8081; xong thì xóa container + config tạm. Trước khi thử upload thật thì đẩy sequence id sự kiện lên cao để không ghi đè ảnh dev thật trên Cloudinary.
 - Bài học 25/11: chủ dự án đổi nhánh trong Sourcetree/IntelliJ ngay trên thư mục Claude đang làm → Claude luôn chạy `git branch --show-current` trước commit/push; việc song song dùng git worktree.
 
 ### Bài 10 đã làm gì (24–25/11)
@@ -142,7 +147,7 @@ _Cập nhật: 2026-11-25 tối (trên laptop Windows)_
 - **Mac mini:** chưa thử frontend. Safari có thể không lưu cookie `Secure` trên `http://localhost` → nếu đăng nhập xong vẫn bị đá về `/login`, đặt `JWT_COOKIE_SECURE=false` trong `.env` (hoặc dùng Chrome).
 - Màu chủ đạo `#7E00B2` (`src/theme.ts`) là tạm, đo từ ảnh áo CLB → hỏi người thiết kế lấy mã gốc.
 - Buổi tổng kết kỳ có thể kiêm **kết nạp thành viên mới** (CTV → ACTIVE hàng loạt) → nhớ khi làm tuyển CTV.
-- Từ trước: HR đặt mật khẩu cho member (`roadmap.md`); HR tự Disqualify chính mình/PRESIDENT; lịch sử đổi trạng thái thành viên; tìm kiếm + phân trang; 2 request tạo kỳ chồng nhau cùng lúc → 500 (`DataIntegrityViolationException`); khoảng trống giữa 2 kỳ (quyết ở Bài 12).
+- Từ trước: HR đặt mật khẩu cho member (`roadmap.md`); HR tự Disqualify chính mình/PRESIDENT; lịch sử đổi trạng thái thành viên; tìm kiếm + phân trang; khoảng trống giữa 2 kỳ đã giải quyết bằng lịch kỳ cố định (27/11).
 
 ### Ghi chú về cách học (cập nhật 25/11)
 - Chủ dự án nói rõ: **backend đã rõ ("đúng nghề"), frontend còn mơ hồ nhiều.** Ngày 25/11 Claude đã giải thích lại cấu trúc `FEVeID_FrontEnd/src` theo bảng so sánh với Spring (`App.tsx` ≈ `@GetMapping`, `RequireAuth/RequireRole` ≈ security filter/`@PreAuthorize`, `*Queries.ts` ≈ service + `@Cacheable/@CacheEvict`, `*Api.ts` + `api/client.ts` ≈ Feign/RestTemplate + filter, `schema.d.ts` ≈ DTO, `*Labels.ts` ≈ enum → nhãn, `pages/` = màn hình theo URL, `layouts/` = khung + `<Outlet/>`), 5 khái niệm (component/props, hook `use…`, useQuery/useMutation/invalidate, Route/useParams/useSearchParams/Outlet, antd) và đi theo luồng bấm "Đăng ký tham gia" từ URL tới backend rồi vẽ lại. Ý chính cần nhắc lại: frontend không "ra lệnh sửa nút", chỉ làm mới dữ liệu → giao diện tự vẽ lại.
