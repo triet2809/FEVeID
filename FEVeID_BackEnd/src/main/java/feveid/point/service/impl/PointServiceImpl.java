@@ -13,6 +13,7 @@ import feveid.point.repository.PointTransactionRepository;
 import feveid.point.service.PointService;
 import feveid.term.entity.Term;
 import feveid.term.repository.TermRepository;
+import feveid.term.service.TermService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +29,12 @@ public class PointServiceImpl implements PointService {
     // Thông báo lỗi dùng chung với test (PointTest)
     public static final String MEMBER_NOT_FOUND = "Không tìm thấy thành viên";
     public static final String TERM_NOT_FOUND = "Không tìm thấy kỳ";
-    public static final String NO_CURRENT_TERM = "Hôm nay không thuộc kỳ hoạt động nào, hãy chọn kỳ cần điều chỉnh";
     public static final String NEGATIVE_BALANCE = "Không đủ điểm: số dư của kỳ không được âm";
 
     private final PointTransactionRepository pointTransactionRepository;
     private final MemberRepository memberRepository;
     private final TermRepository termRepository;
+    private final TermService termService;
     private final Clock clock;
 
     @Override
@@ -82,12 +83,11 @@ public class PointServiceImpl implements PointService {
         // nếu không cả hai cùng thấy số dư cũ, cùng qua kiểm tra -> âm điểm
         Member member = memberRepository.findByIdForUpdate(memberId)
                 .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
-        // 3. Kỳ được điều chỉnh: chọn rõ (sửa điểm kỹ cũ) hoặc mặc định kỳ hiện tại
+        // 3. Kỳ được điều chỉnh: chọn rõ (sửa điểm kỹ cũ) hoặc mặc định kỳ hiện tại (chưa có thì tự tạo)
         Term term = request.termId() != null
                 ? termRepository.findById(request.termId())
                 .orElseThrow(() -> new  NotFoundException(TERM_NOT_FOUND))
-                : currentTerm()
-                .orElseThrow(() -> new ConflictException(NO_CURRENT_TERM));
+                : termService.getOrCreateContaining(LocalDate.now(clock));
         // 4. Số dư của kì đó sau điều chỉnh không được âm
         // Chỉ đúng vì được khóa ở bước 2
         long balance = pointTransactionRepository.balanceOf(member.getId(), term.getId());

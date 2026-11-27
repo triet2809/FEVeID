@@ -71,7 +71,7 @@ Thiết kế (chốt 20/11/2026):
 - Check-in (để cộng điểm tham gia) tách biệt với đăng ký/thanh toán.
 - Role toàn CLB (`MEMBER`, `HR`, `PRESIDENT`) khác với chức vụ trong ban (Department Leader là chức vụ trong ban).
 - Chức vụ trong ban: `LEADER`, `VICE_LEADER`, `MEMBER`. Trưởng ban và Phó ban (Ban Điều Hành) có cùng quyền xem thành viên ban mình (`DepartmentPosition.isManager()`).
-- Kỳ (`terms`) = kỳ học Fall/Spring/Summer, không chồng nhau. Mỗi kỳ có một gian hàng đổi quà riêng (`shop_open`, HR mở/đóng thủ công); một buổi tổng kết có thể mở cùng lúc gian hàng của nhiều kỳ.
+- Kỳ (`terms`) = kỳ học, ngày cố định: Spring 01/01–30/04, Summer 01/05–31/08, Fall 01/09–31/12 (`TermSeason`); tạo bằng mùa + năm, tự tạo khi cần ghi điểm. Điểm sự kiện vào kỳ chứa ngày kết thúc sự kiện. Mỗi kỳ có một gian hàng đổi quà riêng (`shop_open`, HR mở/đóng thủ công); một buổi tổng kết có thể mở cùng lúc gian hàng của nhiều kỳ.
 
 ## Quy ước Git
 

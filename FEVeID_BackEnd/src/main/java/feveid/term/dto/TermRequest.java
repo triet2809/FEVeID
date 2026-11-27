@@ -1,36 +1,19 @@
 package feveid.term.dto;
 
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
+import feveid.term.enums.TermSeason;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
-import java.time.LocalDate;
-
+// Tạo kỳ: chỉ chọn mùa + năm, tên và ngày do hệ thống tính theo lịch cố định (TermSeason)
 public record TermRequest(
-        @Size(max = 100)
-        @NotBlank
-        String name,
-
         @NotNull
-        LocalDate startDate,
+        TermSeason season,
 
+        // Integer (không phải int) để thiếu field thì @NotNull báo 400, không âm thầm thành 0
         @NotNull
-        LocalDate endDate
+        @Min(2020)
+        @Max(2100)
+        Integer year
 ) {
-    public TermRequest {
-        if (name != null) {
-            name = name.trim();
-        }
-    }
-
-    // Kiểm tra chéo 2 field: @NotNull chỉ nhìn từng field riêng lẻ
-    @AssertTrue(message = "Ngày kết thúc phải sau ngày bắt đầu")
-    public boolean isDateRangeValid() {
-        //Thiếu ngày thì để @NotNull báo lỗi, ở đây bỏ qua (tránh NullPointerException)
-        if (startDate == null || endDate == null) {
-            return true;
-        }
-        return endDate.isAfter(startDate);
-    }
 }

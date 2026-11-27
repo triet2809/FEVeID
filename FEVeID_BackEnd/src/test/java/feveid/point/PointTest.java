@@ -121,7 +121,7 @@ class PointTest extends ApiTestSupport {
     @Test
     void me_betweenTerms_noCurrentTerm_balanceZero() throws Exception {
         seed(an, fall, 4, PointTransactionType.ADJUSTMENT, null);
-        setNow("2027-01-05T10:00"); // chưa tạo kỳ Spring 2027
+        setNow("2027-01-05T10:00"); // chưa tạo kỳ Spring 2027: chỉ xem điểm thì không tự tạo kỳ
 
         asUser(get("/api/points/me"), null, anToken)
                 .andExpect(status().isOk())
@@ -222,12 +222,13 @@ class PointTest extends ApiTestSupport {
     }
 
     @Test
-    void adjust_betweenTerms_withoutTermId_returns409() throws Exception {
-        setNow("2027-01-05T10:00");
+    void adjust_termNotCreatedYet_withoutTermId_autoCreatesTerm() throws Exception {
+        setNow("2027-01-05T10:00"); // chưa có dòng Spring 2027 trong DB
 
         adjust(an.getId(), "{\"amount\": 2, \"reason\": \"Thử\"}", hrToken)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value(NO_CURRENT_TERM));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.termName").value("Spring 2027"));
+        assertThat(termRepository.count()).isEqualTo(3); // Summer, Fall 2026 + Spring 2027 vừa tạo
     }
 
     @Test
