@@ -1,5 +1,7 @@
 import { api } from "../api/client";
 import type {
+  CheckInCodeResponse,
+  CheckInResponse,
   EventRegistrationResponse,
   EventStatus,
   GuestRegistrationRequest,
@@ -68,5 +70,32 @@ export function fetchEventRegistrations(
 ): Promise<EventRegistrationResponse[]> {
   return api.get<EventRegistrationResponse[]>(
     `/api/events/${eventId}/registrations`,
+  );
+}
+
+// ---------- Check-in (Bài 12, CheckInController + EventRegistrationController) ----------
+
+// HR/BCN: mã QR hiện tại + số người đã check-in. 409 nếu sự kiện chưa/không còn ONGOING
+export function fetchCheckInCode(
+  eventId: number,
+): Promise<CheckInCodeResponse> {
+  return api.get<CheckInCodeResponse>(`/api/events/${eventId}/check-in-code`);
+}
+
+// Member: gửi lại nguyên eventId + code đọc được từ link trong QR
+export function checkIn(
+  eventId: number,
+  code: string,
+): Promise<CheckInResponse> {
+  return api.post<CheckInResponse>("/api/check-ins", { eventId, code });
+}
+
+// HR/BCN: check-in tay một đăng ký (member hoặc khách)
+export function checkInManually(
+  eventId: number,
+  registrationId: number,
+): Promise<EventRegistrationResponse> {
+  return api.post<EventRegistrationResponse>(
+    `/api/events/${eventId}/registrations/${registrationId}/check-in`,
   );
 }

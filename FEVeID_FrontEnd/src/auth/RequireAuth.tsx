@@ -16,9 +16,15 @@ export function RequireAuth() {
 
   if (me.isError) {
     // 2. 401 → chưa đăng nhập / cookie hết hạn. Ghi nhớ trang đang muốn vào (state.from)
-    //    để đăng nhập xong quay lại đúng trang đó.
+    //    để đăng nhập xong quay lại đúng trang đó. Giữ cả phần ?... (link check-in có ?event=&code=)
     if (isUnauthorized(me.error)) {
-      return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+      return (
+        <Navigate
+          to="/login"
+          replace
+          state={{ from: location.pathname + location.search }}
+        />
+      );
     }
     // 3. Lỗi khác (mất mạng, backend sập) → báo lỗi, KHÔNG đá về /login (đăng nhập lại cũng vô ích)
     return (

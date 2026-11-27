@@ -14,6 +14,7 @@ public record EventRegistrationResponse(
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) RegistrationStatus status,
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Instant createdAt,
         Instant cancelledAt,
+        Instant checkedInAt,
         // true = thành viên CLB, false = khách
         @Schema(requiredMode = Schema.RequiredMode.REQUIRED) boolean member,
         // null với khách
@@ -29,12 +30,12 @@ public record EventRegistrationResponse(
         if (member != null) {
             return new EventRegistrationResponse(
                     registration.getId(), registration.getStatus(), registration.getCreatedAt(),
-                    registration.getCancelledAt(), true, member.getId(),
+                    registration.getCancelledAt(), registration.getCheckedInAt(), true, member.getId(),
                     member.getFullName(), member.getAccount().getEmail(), member.getPhone(), member.getStudentCode());
         }
         return new EventRegistrationResponse(
                 registration.getId(), registration.getStatus(), registration.getCreatedAt(),
-                registration.getCancelledAt(), false, null,
+                registration.getCancelledAt(), registration.getCheckedInAt(), false, null,
                 registration.getGuestName(), registration.getGuestEmail(), registration.getGuestPhone(),
                 registration.getGuestSchool());
     }

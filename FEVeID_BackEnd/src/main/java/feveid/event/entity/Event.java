@@ -12,6 +12,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -84,6 +85,10 @@ public class Event {
     @Builder.Default
     private List<EventPhase> phases = new ArrayList<>();
 
+    // Bí mật để tạo mã QR check-in (CheckInCodes). Không bao giờ trả ra API, không đổi sau khi tạo
+    @Column(name = "check_in_secret", nullable = false, updatable = false)
+    private byte[] checkInSecret;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -91,6 +96,17 @@ public class Event {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    // Hibernate gọi ngay trước khi INSERT, dù sự kiện được tạo bằng cách nào
+    @PrePersist
+    void generateCheckInSecret() {
+        if (checkInSecret == null) {
+            checkInSecret = new byte[32];
+            SECURE_RANDOM.nextBytes(checkInSecret);
+        }
+    }
 
     // Khách (chưa đăng nhập) có thấy sự kiện này trên trang công khai không, chưa xét đã công bố hay chưa
     public boolean isVisibleToGuests() {

@@ -3,8 +3,10 @@ import { RequireAuth } from "./auth/RequireAuth";
 import { RequireRole } from "./auth/RequireRole";
 import { ROLE_GROUPS } from "./auth/roles";
 import { AppLayout } from "./layouts/AppLayout";
+import { CheckInPage } from "./pages/CheckInPage";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { DashboardPage } from "./pages/DashboardPage";
+import { CheckInScreenPage } from "./pages/events/CheckInScreenPage";
 import { EventCreatePage } from "./pages/events/EventCreatePage";
 import { EventDetailPage } from "./pages/events/EventDetailPage";
 import { EventListPage } from "./pages/events/EventListPage";
@@ -38,10 +40,15 @@ export default function App() {
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="my-events" element={<MyEventsPage />} />
+          {/* Mở từ link trong QR check-in (không có mục menu) */}
+          <Route path="check-in" element={<CheckInPage />} />
 
           {/* Chỉ HR và Ban Chủ nhiệm */}
           <Route element={<RequireRole roles={ROLE_GROUPS.memberManagers} />}>
-            <Route path="members" element={<PlaceholderPage title="Quản lý thành viên" />} />
+            <Route
+              path="members"
+              element={<PlaceholderPage title="Quản lý thành viên" />}
+            />
             <Route path="terms" element={<PlaceholderPage title="Kỳ học" />} />
           </Route>
 
@@ -52,6 +59,14 @@ export default function App() {
             <Route path="events/new" element={<EventCreatePage />} />
             <Route path="events/:id" element={<EventDetailPage />} />
           </Route>
+        </Route>
+
+        {/* Màn hình chiếu QR: vẫn phải đăng nhập + đúng role, nhưng KHÔNG có AppLayout (không menu) để QR to hết cỡ */}
+        <Route element={<RequireRole roles={ROLE_GROUPS.eventManagers} />}>
+          <Route
+            path="events/:id/check-in-screen"
+            element={<CheckInScreenPage />}
+          />
         </Route>
       </Route>
 

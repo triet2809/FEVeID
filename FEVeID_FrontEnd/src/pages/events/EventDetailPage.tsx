@@ -207,7 +207,7 @@ function EventDetail({ event }: { event: EventResponse }) {
               : [
                   {
                     key: "registrations",
-                    label: "Đăng ký",
+                    label: "Đăng ký & check-in",
                     children: <RegistrationList event={event} />,
                   },
                 ]),

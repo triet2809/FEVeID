@@ -1,6 +1,8 @@
-import { Alert, Flex, Input, Table, Tag, Typography } from "antd";
+import { QrcodeOutlined } from "@ant-design/icons";
+import { Alert, Button, Flex, Input, Table, Tag, Typography } from "antd";
 import type { TableColumnsType } from "antd";
 import { useState } from "react";
+import { Link } from "react-router";
 import { errorMessage } from "../api/client";
 import type { EventRegistrationResponse, EventResponse } from "../api/types";
 import { formatDateTime } from "../lib/time";
@@ -8,9 +10,12 @@ import {
   isActiveRegistration,
   REGISTRATION_STATUS_TAGS,
 } from "../registrations/registrationLabels";
-import { useEventRegistrations } from "../registrations/registrationQueries";
+import {
+  useEventRegistrations,
+  useManualCheckIn,
+} from "../registrations/registrationQueries";
 
-const columns: TableColumnsType<EventRegistrationResponse> = [
+const baseColumns: TableColumnsType<EventRegistrationResponse> = [
   {
     title: "#",
     key: "index",
@@ -55,10 +60,38 @@ function matches(row: EventRegistrationResponse, keyword: string): boolean {
   );
 }
 
-// Tab "Đăng ký" trong trang quản lý sự kiện (HR/BCN)
+// Tab "Đăng ký & check-in" trong trang quản lý sự kiện (HR/BCN).
+// Đang diễn ra (ONGOING): danh sách tự tải lại 10 giây/lần, có nút check-in tay và nút mở màn hình QR
 export function RegistrationList({ event }: { event: EventResponse }) {
-  const registrations = useEventRegistrations(event.id);
+  const ongoing = event.status === "ONGOING";
+  const registrations = useEventRegistrations(event.id, ongoing);
+  const manual = useManualCheckIn(event.id);
   const [keyword, setKeyword] = useState("");
+
+  // Cột check-in cần biết sự kiện có đang diễn ra không và nút nào đang chờ → khai báo trong component
+  const columns: TableColumnsType<EventRegistrationResponse> = [
+    ...baseColumns,
+    {
+      title: "Check-in",
+      key: "checkIn",
+      render: (_, row) => {
+        if (row.checkedInAt) return formatDateTime(row.checkedInAt);
+        // Chỉ đăng ký đã xác nhận mới check-in tay được (khớp checkInManually bên backend)
+        if (ongoing && row.status === "CONFIRMED") {
+          return (
+            <Button
+              size="small"
+              loading={manual.isPending && manual.variables === row.id}
+              onClick={() => manual.mutate(row.id)}
+            >
+              Check-in
+            </Button>
+          );
+        }
+        return "—";
+      },
+    },
+  ];
 
   if (registrations.isError) {
     return <Alert type="error" title={errorMessage(registrations.error)} />;
@@ -66,15 +99,32 @@ export function RegistrationList({ event }: { event: EventResponse }) {
 
   const rows = registrations.data ?? [];
   const active = rows.filter((r) => isActiveRegistration(r.status)).length;
+  const checkedIn = rows.filter((r) => r.status === "CHECKED_IN").length;
   const shown = keyword ? rows.filter((r) => matches(r, keyword)) : rows;
 
   return (
     <Flex vertical gap={12}>
       <Flex justify="space-between" align="center" wrap gap={12}>
-        <Typography.Text>
-          Đang giữ chỗ: <strong>{active}</strong>
-          {event.capacity ? ` / ${event.capacity}` : " (không giới hạn)"}
-        </Typography.Text>
+        <Flex gap={16} wrap align="center">
+          <Typography.Text>
+            Đang giữ chỗ: <strong>{active}</strong>
+            {event.capacity ? ` / ${event.capacity}` : " (không giới hạn)"}
+          </Typography.Text>
+          <Typography.Text>
+            Đã check-in: <strong>{checkedIn}</strong>
+          </Typography.Text>
+          {/* Mở tab mới để chiếu lên màn hình lớn, tab quản lý vẫn giữ để check-in tay */}
+          {ongoing && (
+            <Link
+              to={`/app/events/${event.id}/check-in-screen`}
+              target="_blank"
+            >
+              <Button type="primary" icon={<QrcodeOutlined />}>
+                Mở màn hình QR check-in
+              </Button>
+            </Link>
+          )}
+        </Flex>
         <Input.Search
           allowClear
           placeholder="Tìm theo tên, email, MSSV"

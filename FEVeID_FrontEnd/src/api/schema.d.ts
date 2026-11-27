@@ -301,6 +301,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{eventId}/registrations/{registrationId}/check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check-in tay
+         * @description Dự phòng khi không quét được QR, và cho khách. Đã check-in rồi vẫn 200. 409 nếu sự kiện không ONGOING hoặc đăng ký đã hủy
+         */
+        post: operations["checkInManually"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments": {
         parameters: {
             query?: never;
@@ -316,6 +336,26 @@ export interface paths {
         put?: never;
         /** Tạo ban mới */
         post: operations["createDepartment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/check-ins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Member tự check-in bằng mã QR
+         * @description Quét lại vẫn 200. Chưa đăng ký mà còn chỗ thì tự tạo đăng ký. 400 nếu mã sai/hết hạn, 409 nếu sự kiện không ONGOING hoặc hết chỗ
+         */
+        post: operations["checkIn"];
         delete?: never;
         options?: never;
         head?: never;
@@ -577,6 +617,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{eventId}/check-in-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mã QR check-in hiện tại
+         * @description Cho màn hình chiếu. Mã đổi mỗi 30 giây, gọi lại sau expiresAt. 409 nếu sự kiện không ONGOING
+         */
+        get: operations["getCheckInCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments/{departmentId}/members": {
         parameters: {
             query?: never;
@@ -778,6 +838,39 @@ export interface components {
             phone: string;
             school: string;
         };
+        EventRegistrationResponse: {
+            /** Format: int64 */
+            id: number;
+            /** @enum {string} */
+            status: "PENDING_PAYMENT" | "CONFIRMED" | "CHECKED_IN" | "CANCELLED" | "EXPIRED" | "NO_SHOW";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            cancelledAt?: string;
+            /** Format: date-time */
+            checkedInAt?: string;
+            member: boolean;
+            /** Format: int64 */
+            memberId?: number;
+            fullName: string;
+            email: string;
+            phone?: string;
+            studentCodeOrSchool?: string;
+        };
+        CheckInRequest: {
+            /** Format: int64 */
+            eventId: number;
+            code: string;
+        };
+        CheckInResponse: {
+            /** Format: int64 */
+            registrationId: number;
+            /** Format: int64 */
+            eventId: number;
+            eventName: string;
+            /** Format: date-time */
+            checkedInAt: string;
+        };
         LoginRequest: {
             /** Format: email */
             email: string;
@@ -875,22 +968,14 @@ export interface components {
             registrationOpen: boolean;
             phases: components["schemas"]["PhaseResponse"][];
         };
-        EventRegistrationResponse: {
-            /** Format: int64 */
-            id: number;
-            /** @enum {string} */
-            status: "PENDING_PAYMENT" | "CONFIRMED" | "CHECKED_IN" | "CANCELLED" | "EXPIRED" | "NO_SHOW";
+        CheckInCodeResponse: {
+            code: string;
             /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            cancelledAt?: string;
-            member: boolean;
+            expiresAt: string;
             /** Format: int64 */
-            memberId?: number;
-            fullName: string;
-            email: string;
-            phone?: string;
-            studentCodeOrSchool?: string;
+            checkedInCount: number;
+            /** Format: int64 */
+            expectedCount: number;
         };
         DepartmentMemberResponse: {
             /** Format: int64 */
@@ -1427,6 +1512,29 @@ export interface operations {
             };
         };
     };
+    checkInManually: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: number;
+                registrationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["EventRegistrationResponse"];
+                };
+            };
+        };
+    };
     getDepartments: {
         parameters: {
             query?: never;
@@ -1467,6 +1575,30 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["DepartmentResponse"];
+                };
+            };
+        };
+    };
+    checkIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckInRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckInResponse"];
                 };
             };
         };
@@ -1778,6 +1910,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["EventRegistrationResponse"][];
+                };
+            };
+        };
+    };
+    getCheckInCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CheckInCodeResponse"];
                 };
             };
         };

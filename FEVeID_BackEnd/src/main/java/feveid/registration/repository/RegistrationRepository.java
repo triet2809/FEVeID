@@ -31,4 +31,13 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
 
     // Chỉ tìm đăng ký của chính member đó: của người khác thì coi như không có (404)
     Optional<Registration> findByIdAndMemberId(Long id, Long memberId);
+
+    // Đăng ký còn hiệu lực của member ở sự kiện: tối đa 1 dòng nhờ unique index một phần ở V10
+    Optional<Registration> findByEventIdAndMemberIdAndStatusIn(Long eventId, Long memberId,
+                                                                Collection<RegistrationStatus> statuses);
+
+    // Check-in tay: đăng ký phải thuộc đúng sự kiện trên URL, không thì coi như không có (404)
+    Optional<Registration> findByIdAndEventId(Long id, Long eventId);
+
+    long countByEventIdAndStatus(Long eventId, RegistrationStatus status);
 }
