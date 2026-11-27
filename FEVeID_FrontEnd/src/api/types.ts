@@ -28,3 +28,10 @@ export type EventRegistrationResponse = Schemas["EventRegistrationResponse"];
 export type CheckInCodeResponse = Schemas["CheckInCodeResponse"];
 export type CheckInRequest = Schemas["CheckInRequest"];
 export type CheckInResponse = Schemas["CheckInResponse"];
+
+// Điểm hoạt động (Bài 12.4–12.5)
+export type PointSummaryResponse = Schemas["PointSummaryResponse"];
+export type PointTransactionResponse = Schemas["PointTransactionResponse"];
+export type PointTransactionType = PointTransactionResponse["type"]; // ORGANIZE | SUPPORT | ATTEND | ADJUSTMENT | ...
+export type PointAdjustmentRequest = Schemas["PointAdjustmentRequest"];
+export type TermResponse = Schemas["TermResponse"];

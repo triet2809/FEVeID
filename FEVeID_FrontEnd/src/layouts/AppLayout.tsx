@@ -5,7 +5,9 @@ import {
   GlobalOutlined,
   LogoutOutlined,
   ScheduleOutlined,
+  StarOutlined,
   TeamOutlined,
+  TrophyOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, Space, Tag, Typography } from "antd";
@@ -29,10 +31,12 @@ const MENU: MenuEntry[] = [
   { path: "/app", label: "Tổng quan", icon: <DashboardOutlined />, roles: ROLE_GROUPS.all },
   { path: "/app/profile", label: "Hồ sơ của tôi", icon: <UserOutlined />, roles: ROLE_GROUPS.all },
   { path: "/app/my-events", label: "Sự kiện của tôi", icon: <ScheduleOutlined />, roles: ROLE_GROUPS.all },
+  { path: "/app/points", label: "Điểm của tôi", icon: <StarOutlined />, roles: ROLE_GROUPS.all },
   // Ra khu công khai (PublicLayout, có nút "Khu thành viên" để quay lại)
   { path: "/events", label: "Sự kiện CLB", icon: <GlobalOutlined />, roles: ROLE_GROUPS.all },
   { path: "/app/members", label: "Thành viên", icon: <TeamOutlined />, roles: ROLE_GROUPS.memberManagers },
   { path: "/app/terms", label: "Kỳ học", icon: <CalendarOutlined />, roles: ROLE_GROUPS.memberManagers },
+  { path: "/app/member-points", label: "Điểm thành viên", icon: <TrophyOutlined />, roles: ROLE_GROUPS.memberManagers },
   { path: "/app/events", label: "Sự kiện", icon: <CarryOutOutlined />, roles: ROLE_GROUPS.eventManagers },
 ];
 

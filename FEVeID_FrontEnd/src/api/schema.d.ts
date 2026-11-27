@@ -217,6 +217,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/members/{memberId}/points/adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Điều chỉnh điểm thủ công
+         * @description Bắt buộc lý do. Bỏ trống termId = kỳ hiện tại. 409 nếu số dư kỳ sẽ âm hoặc không có kỳ hiện tại
+         */
+        post: operations["adjust"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/events": {
         parameters: {
             query?: never;
@@ -560,6 +580,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/points/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Điểm của tôi
+         * @description Số dư kỳ hiện tại, tổng trọn đời, lịch sử cộng/trừ
+         */
+        get: operations["getMySummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/members": {
         parameters: {
             query?: never;
@@ -572,6 +612,23 @@ export interface paths {
          * @description Lọc theo trạng thái nếu truyền status
          */
         get: operations["getMembers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/members/{memberId}/points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Điểm của một thành viên */
+        get: operations["getMemberSummary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -711,13 +768,13 @@ export interface components {
         };
         TermResponse: {
             /** Format: int64 */
-            id?: number;
-            name?: string;
+            id: number;
+            name: string;
             /** Format: date */
-            startDate?: string;
+            startDate: string;
             /** Format: date */
-            endDate?: string;
-            shopOpen?: boolean;
+            endDate: string;
+            shopOpen: boolean;
         };
         AssignDepartmentRequest: {
             /** Format: int64 */
@@ -837,6 +894,32 @@ export interface components {
             email: string;
             phone: string;
             school: string;
+        };
+        PointAdjustmentRequest: {
+            /** Format: int64 */
+            termId?: number;
+            /** Format: int32 */
+            amount: number;
+            reason: string;
+            amountNonZero?: boolean;
+        };
+        PointTransactionResponse: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            termId: number;
+            termName: string;
+            /** Format: int32 */
+            amount: number;
+            /** @enum {string} */
+            type: "ORGANIZE" | "SUPPORT" | "ATTEND" | "ADJUSTMENT" | "REDEEM" | "REFUND";
+            /** Format: int64 */
+            eventId?: number;
+            eventName?: string;
+            reason?: string;
+            createdByName?: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         EventRegistrationResponse: {
             /** Format: int64 */
@@ -967,6 +1050,19 @@ export interface components {
             registrationClosesAt: string;
             registrationOpen: boolean;
             phases: components["schemas"]["PhaseResponse"][];
+        };
+        PointSummaryResponse: {
+            /** Format: int64 */
+            memberId: number;
+            fullName: string;
+            /** Format: int64 */
+            currentTermId?: number;
+            currentTermName?: string;
+            /** Format: int64 */
+            currentBalance: number;
+            /** Format: int64 */
+            lifetimePoints: number;
+            history: components["schemas"]["PointTransactionResponse"][];
         };
         CheckInCodeResponse: {
             code: string;
@@ -1397,6 +1493,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["RegistrationResponse"];
+                };
+            };
+        };
+    };
+    adjust: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memberId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PointAdjustmentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PointTransactionResponse"];
                 };
             };
         };
@@ -1848,6 +1970,26 @@ export interface operations {
             };
         };
     };
+    getMySummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PointSummaryResponse"];
+                };
+            };
+        };
+    };
     getMembers: {
         parameters: {
             query?: {
@@ -1866,6 +2008,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MemberResponse"][];
+                };
+            };
+        };
+    };
+    getMemberSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memberId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PointSummaryResponse"];
                 };
             };
         };
