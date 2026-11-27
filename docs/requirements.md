@@ -363,6 +363,8 @@ Sau mỗi kỳ hoạt động, CLB tổ chức buổi tổng kết để vinh da
 - Hệ thống vẫn ghi nhận **tổng điểm trọn đời** của mỗi thành viên (chỉ tính điểm kiếm được, không trừ điểm đã đổi quà).
 - HR/BCN tạo kỳ hoạt động, thiết lập thời gian kỳ và thời gian mở shop đổi quà.
 - *(Chốt 18/11/2026)* Kỳ = kỳ học: mỗi năm 3 kỳ **Fall, Spring, Summer**, các kỳ không chồng lên nhau. Điểm của mỗi kỳ tính riêng.
+- *(Chốt 27/11/2026)* Ngày của kỳ cố định: **Spring 01/01–30/04, Summer 01/05–31/08, Fall 01/09–31/12**, nối liền nhau, không có khoảng trống. HR/BCN tạo kỳ chỉ bằng cách chọn mùa + năm (không sửa ngày); khi cần ghi điểm mà kỳ chưa có thì hệ thống tự tạo.
+- *(Chốt 27/11/2026)* Điểm từ sự kiện tính vào kỳ chứa **ngày kết thúc sự kiện** (giờ Việt Nam), không phải kỳ lúc HR bấm chốt.
 - *(Chốt 18/11/2026)* Mỗi kỳ có **một gian hàng đổi quà riêng**: quà của kỳ nào đổi bằng điểm của kỳ đó. HR/BCN **mở/đóng gian hàng thủ công** bất kỳ lúc nào (không đặt lịch trước).
 - *(Chốt 18/11/2026)* Buổi tổng kết diễn ra sau khi kỳ kết thúc một thời gian ngắn, và một buổi có thể gộp nhiều kỳ: khi đó shop mở đồng thời nhiều gian hàng, mỗi gian dùng điểm của kỳ tương ứng.
 

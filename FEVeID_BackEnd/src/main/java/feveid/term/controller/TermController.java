@@ -36,16 +36,11 @@ public class TermController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('HR', 'PRESIDENT')")
-    @Operation(summary = "Tạo kỳ mới", description = "Không được chồng lên kỳ khác; gian hàng mặc định đóng")
+    @Operation(summary = "Tạo kỳ mới",
+            description = "Chọn mùa + năm; tên và ngày theo lịch cố định (Spring 01/01-30/04, Summer 01/05-31/08, "
+                    + "Fall 01/09-31/12). Gian hàng mặc định đóng. Kỳ cũng tự được tạo khi cần ghi điểm")
     public ResponseEntity<TermResponse> createTerm(@Valid  @RequestBody TermRequest request) {
         return new ResponseEntity<>(termService.createTerm(request), HttpStatus.CREATED);
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('HR', 'PRESIDENT')")
-    @Operation(summary = "Sửa tên/thời gian kỳ", description = "Không thay đổi trạng thái gian hàng")
-    public ResponseEntity<TermResponse> updateTerm(@PathVariable Long id, @Valid  @RequestBody TermRequest request) {
-        return ResponseEntity.ok(termService.updateTerm(id, request));
     }
 
     @PatchMapping("/{id}/shop")

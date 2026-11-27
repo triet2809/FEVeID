@@ -4,27 +4,6 @@
  */
 
 export interface paths {
-    "/api/terms/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Xem một kỳ */
-        get: operations["getTermById"];
-        /**
-         * Sửa tên/thời gian kỳ
-         * @description Không thay đổi trạng thái gian hàng
-         */
-        put: operations["updateTerm"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/members/{memberId}/department": {
         parameters: {
             query?: never;
@@ -172,7 +151,7 @@ export interface paths {
         put?: never;
         /**
          * Tạo kỳ mới
-         * @description Không được chồng lên kỳ khác; gian hàng mặc định đóng
+         * @description Chọn mùa + năm; tên và ngày theo lịch cố định (Spring 01/01-30/04, Summer 01/05-31/08, Fall 01/09-31/12). Gian hàng mặc định đóng. Kỳ cũng tự được tạo khi cần ghi điểm
          */
         post: operations["createTerm"];
         delete?: never;
@@ -524,6 +503,23 @@ export interface paths {
         patch: operations["updateProfile"];
         trace?: never;
     };
+    "/api/terms/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Xem một kỳ */
+        get: operations["getTermById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/terms/current": {
         parameters: {
             query?: never;
@@ -782,24 +778,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        TermRequest: {
-            name: string;
-            /** Format: date */
-            startDate: string;
-            /** Format: date */
-            endDate: string;
-            dateRangeValid?: boolean;
-        };
-        TermResponse: {
-            /** Format: int64 */
-            id: number;
-            name: string;
-            /** Format: date */
-            startDate: string;
-            /** Format: date */
-            endDate: string;
-            shopOpen: boolean;
-        };
         AssignDepartmentRequest: {
             /** Format: int64 */
             departmentId: number;
@@ -911,6 +889,22 @@ export interface components {
             id?: number;
             name?: string;
             description?: string;
+        };
+        TermRequest: {
+            /** @enum {string} */
+            season: "SPRING" | "SUMMER" | "FALL";
+            /** Format: int32 */
+            year: number;
+        };
+        TermResponse: {
+            /** Format: int64 */
+            id: number;
+            name: string;
+            /** Format: date */
+            startDate: string;
+            /** Format: date */
+            endDate: string;
+            shopOpen: boolean;
         };
         RegistrationRequest: {
             /** Format: int64 */
@@ -1133,54 +1127,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    getTermById: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TermResponse"];
-                };
-            };
-        };
-    };
-    updateTerm: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["TermRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["TermResponse"];
-                };
-            };
-        };
-    };
     assign: {
         parameters: {
             query?: never;
@@ -1970,6 +1916,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["MemberResponse"];
+                };
+            };
+        };
+    };
+    getTermById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["TermResponse"];
                 };
             };
         };
