@@ -75,15 +75,35 @@ public class PointServiceImpl implements PointService {
     @Override
     @Transactional
     public PointTransactionResponse adjust(String staffEmail, Long memberId, PointAdjustmentRequest request) {
-        // TODO 1. staff = người ghi giao dịch (memberRepository.findByAccountEmail)
-        // TODO 2. KHÓA dòng thành viên được điều chỉnh (memberRepository.findByIdForUpdate),
-        //         không có -> NotFoundException(MEMBER_NOT_FOUND)
-        // TODO 3. Kỳ: request.termId() có giá trị -> termRepository.findById, không có -> NotFoundException(TERM_NOT_FOUND);
-        //         bỏ trống -> currentTerm(), không có -> ConflictException(NO_CURRENT_TERM)
-        // TODO 4. Số dư sau điều chỉnh = balanceOf(...) + request.amount(); < 0 -> ConflictException(NEGATIVE_BALANCE)
-        // TODO 5. Lưu PointTransaction mới: type ADJUSTMENT, amount, reason, term, member, createdBy = staff
-        // TODO 6. return PointTransactionResponse.from(...)
-        throw new UnsupportedOperationException("TODO: Bài 12.4");
+        // 1. người ghi giao dịch (HR/BCN)
+        Member staff = memberRepository.findByAccountEmail(staffEmail)
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+        // 2. Khóa dòng thành viên trước khi tính số dư: 2 lần trừ điểm cùng lúc phải xếp hàng ở đây
+        // nếu không cả hai cùng thấy số dư cũ, cùng qua kiểm tra -> âm điểm
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() -> new NotFoundException(MEMBER_NOT_FOUND));
+        // 3. Kỳ được điều chỉnh: chọn rõ (sửa điểm kỹ cũ) hoặc mặc định kỳ hiện tại
+        Term term = request.termId() != null
+                ? termRepository.findById(request.termId())
+                .orElseThrow(() -> new  NotFoundException(TERM_NOT_FOUND))
+                : currentTerm()
+                .orElseThrow(() -> new NotFoundException(NO_CURRENT_TERM));
+        // 4. Số dư của kì đó sau điều chỉnh không được âm
+        // Chỉ đúng vì được khóa ở bước 2
+        long balance = pointTransactionRepository.balanceOf(member.getId(), term.getId());
+        if(balance + request.amount() <0) {
+            throw new  ConflictException(NEGATIVE_BALANCE);
+        }
+        // 5. Thêm 1 dòng mới vào sổ cái, không sửa dòng nào cũ
+        PointTransaction transaction = PointTransaction.builder()
+                .member(member)
+                .term(term)
+                .amount(request.amount())
+                .type(PointTransactionType.ADJUSTMENT)
+                .reason(request.reason())
+                .createdBy(staff)
+                .build();
+        return PointTransactionResponse.from(pointTransactionRepository.save(transaction));
     }
 
     // Kỳ chứa ngày hôm nay theo giờ VN (Clock của TimeConfig). Khoảng trống giữa 2 kỳ -> rỗng
