@@ -23,3 +23,8 @@ export type RegistrationStatus = RegistrationResponse["status"]; // CONFIRMED | 
 export type GuestRegistrationRequest = Schemas["GuestRegistrationRequest"];
 export type MyRegistrationResponse = Schemas["MyRegistrationResponse"];
 export type EventRegistrationResponse = Schemas["EventRegistrationResponse"];
+
+// Check-in (Bài 12)
+export type CheckInCodeResponse = Schemas["CheckInCodeResponse"];
+export type CheckInRequest = Schemas["CheckInRequest"];
+export type CheckInResponse = Schemas["CheckInResponse"];

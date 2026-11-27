@@ -193,7 +193,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 registrationRepository.countByEventIdAndStatusIn(eventId, RegistrationStatus.ACTIVE));
     }
 
-    // LÕI – chủ dự án tự viết. Thứ tự giống register(): khóa -> kiểm tra -> ghi
+    // Member tự quét QR. Thứ tự giống register(): khóa -> kiểm tra -> ghi
     @Override
     @Transactional
     public CheckInResponse checkIn(String email, Long eventId, String code) {
