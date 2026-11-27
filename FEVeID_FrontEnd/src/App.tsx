@@ -12,7 +12,9 @@ import { EventDetailPage } from "./pages/events/EventDetailPage";
 import { EventListPage } from "./pages/events/EventListPage";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
+import { MemberPointsPage } from "./pages/MemberPointsPage";
 import { MyEventsPage } from "./pages/MyEventsPage";
+import { MyPointsPage } from "./pages/MyPointsPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -40,6 +42,7 @@ export default function App() {
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="my-events" element={<MyEventsPage />} />
+          <Route path="points" element={<MyPointsPage />} />
           {/* Mở từ link trong QR check-in (không có mục menu) */}
           <Route path="check-in" element={<CheckInPage />} />
 
@@ -50,6 +53,7 @@ export default function App() {
               element={<PlaceholderPage title="Quản lý thành viên" />}
             />
             <Route path="terms" element={<PlaceholderPage title="Kỳ học" />} />
+            <Route path="member-points" element={<MemberPointsPage />} />
           </Route>
 
           {/* Quản lý sự kiện: HR và Ban Chủ nhiệm. /app/events/new khớp cả "events/new" lẫn "events/:id";
