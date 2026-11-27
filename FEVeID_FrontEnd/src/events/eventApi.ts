@@ -2,8 +2,12 @@ import { api } from "../api/client";
 import type {
   EventRequest,
   EventResponse,
+  EventStaffResponse,
+  FinalizationResponse,
+  FinalizeEventRequest,
   MemberResponse,
   PhaseRequest,
+  StaffAssignmentRequest,
 } from "../api/types";
 
 // Mỗi hàm = một endpoint của EventController (giống một method trong Feign client / RestTemplate bên Java)
@@ -70,4 +74,35 @@ export function deleteBanner(id: number): Promise<EventResponse> {
 // Để chọn người phụ trách. GET /api/members cũng chỉ HR/BCN gọi được, trùng quyền với trang sự kiện
 export function fetchMembers(): Promise<MemberResponse[]> {
   return api.get<MemberResponse[]>("/api/members");
+}
+
+// ---------- Team sự kiện (EventStaffController) ----------
+
+export function fetchEventStaff(id: number): Promise<EventStaffResponse[]> {
+  return api.get<EventStaffResponse[]>(`/api/events/${id}/staff`);
+}
+
+// Thay CẢ team: ai không có trong list là bị gỡ (giống PUT lịch giai đoạn)
+export function replaceEventStaff(
+  id: number,
+  staff: StaffAssignmentRequest[],
+): Promise<EventStaffResponse[]> {
+  return api.put<EventStaffResponse[]>(`/api/events/${id}/staff`, { staff });
+}
+
+// ---------- Chốt sự kiện (EventFinalizationController) ----------
+
+// Chưa chốt: bản xem trước. Đã chốt: điểm đã ghi trong sổ cái
+export function fetchFinalization(id: number): Promise<FinalizationResponse> {
+  return api.get<FinalizationResponse>(`/api/events/${id}/finalization`);
+}
+
+export function finalizeEvent(
+  id: number,
+  request: FinalizeEventRequest,
+): Promise<FinalizationResponse> {
+  return api.post<FinalizationResponse>(
+    `/api/events/${id}/finalization`,
+    request,
+  );
 }

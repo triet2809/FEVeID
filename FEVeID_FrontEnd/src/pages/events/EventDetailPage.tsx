@@ -24,6 +24,7 @@ import {
   updateEvent,
 } from "../../events/eventApi";
 import { EventInfoForm } from "../../events/EventInfoForm";
+import { FinalizationSection } from "../../events/FinalizationSection";
 import {
   isLocked,
   phaseNameToShow,
@@ -38,6 +39,7 @@ import {
 } from "../../events/eventQueries";
 import { PhaseSchedule } from "../../events/PhaseSchedule";
 import { RegistrationList } from "../../events/RegistrationList";
+import { StaffSection } from "../../events/StaffSection";
 import { formatDateTime } from "../../lib/time";
 
 // /app/events/:id  (useParams ≈ @PathVariable, nhưng luôn là chuỗi → tự đổi sang số)
@@ -167,10 +169,20 @@ function EventDetail({ event }: { event: EventResponse }) {
         </Flex>
       </Flex>
 
-      {locked && (
+      {locked && !event.finalizedAt && (
         <Alert
           type="warning"
-          title="Sự kiện đã kết thúc hoặc đã hủy nên không chỉnh sửa được nữa."
+          title={
+            event.status === "COMPLETED"
+              ? 'Sự kiện đã kết thúc nên không chỉnh sửa được nữa. Hãy chốt sự kiện ở tab "Chốt sự kiện" để phát điểm.'
+              : "Sự kiện đã hủy nên không chỉnh sửa được nữa."
+          }
+        />
+      )}
+      {event.finalizedAt && (
+        <Alert
+          type="success"
+          title={`Đã chốt sự kiện lúc ${formatDateTime(event.finalizedAt)} bởi ${event.finalizedByName}.`}
         />
       )}
 
@@ -201,6 +213,11 @@ function EventDetail({ event }: { event: EventResponse }) {
               label: "Ảnh banner",
               children: <BannerSection event={event} />,
             },
+            {
+              key: "staff",
+              label: "Team",
+              children: <StaffSection event={event} />,
+            },
             // Bản nháp chưa ai đăng ký được nên chỉ hiện tab khi đã công bố (kể cả đã hủy, để xem lại)
             ...(event.publication === "DRAFT"
               ? []
@@ -211,6 +228,16 @@ function EventDetail({ event }: { event: EventResponse }) {
                     children: <RegistrationList event={event} />,
                   },
                 ]),
+            // Chỉ chốt được sau khi kết thúc (đã chốt thì vẫn hiện để xem kết quả)
+            ...(event.status === "COMPLETED"
+              ? [
+                  {
+                    key: "finalization",
+                    label: event.finalizedAt ? "Kết quả chốt" : "Chốt sự kiện",
+                    children: <FinalizationSection event={event} />,
+                  },
+                ]
+              : []),
           ]}
         />
       </Card>

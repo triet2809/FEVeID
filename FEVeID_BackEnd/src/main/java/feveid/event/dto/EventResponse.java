@@ -33,7 +33,10 @@ public record EventResponse(
         Instant registrationOpensAt,
         Instant registrationClosesAt,
         OwnerRef owner,
-        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<PhaseResponse> phases
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED) List<PhaseResponse> phases,
+        // Chốt sự kiện (Bài 13.2): null = chưa chốt
+        Instant finalizedAt,
+        String finalizedByName
 ) {
     public record OwnerRef(
             @Schema(requiredMode = Schema.RequiredMode.REQUIRED) Long id,
@@ -59,7 +62,9 @@ public record EventResponse(
                 event.getRegistrationClosesAt(),
                 event.getOwner() == null ? null
                         : new OwnerRef(event.getOwner().getId(), event.getOwner().getFullName()),
-                event.getPhases().stream().map(PhaseResponse::from).toList()
+                event.getPhases().stream().map(PhaseResponse::from).toList(),
+                event.getFinalizedAt(),
+                event.getFinalizedBy() == null ? null : event.getFinalizedBy().getFullName()
         );
     }
 }

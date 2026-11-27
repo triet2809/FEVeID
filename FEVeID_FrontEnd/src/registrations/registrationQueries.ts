@@ -98,6 +98,9 @@ export function useManualCheckIn(eventId: number) {
         queryKey: eventRegistrationsKey(eventId),
       });
       queryClient.invalidateQueries({ queryKey: checkInCodeKey(eventId) });
+      // Check-in bù sau khi kết thúc → danh sách người tham gia ở màn "Chốt sự kiện" đổi theo.
+      // Ghi thẳng khóa (= finalizationKey bên eventQueries) để 2 file không import vòng tròn lẫn nhau
+      queryClient.invalidateQueries({ queryKey: ["finalization", eventId] });
       message.success(`Đã check-in: ${registration.fullName}`);
     },
     // vd 409 "Chỉ check-in được khi sự kiện đang diễn ra"

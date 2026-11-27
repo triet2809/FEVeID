@@ -8,6 +8,6 @@ import java.util.List;
 public interface EventStaffService {
     List<EventStaffResponse> getStaff(Long eventId);
 
-    // Thay cả team. Bị khóa khi sự kiện đã hủy (Bài 13.2 thêm: đã chốt)
+    // Thay cả team. Bị khóa khi sự kiện đã hủy hoặc đã chốt
     List<EventStaffResponse> replaceStaff(Long eventId, EventStaffRequest request);
 }

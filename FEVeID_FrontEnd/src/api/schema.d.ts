@@ -344,6 +344,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/events/{eventId}/finalization": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Xem trước / kết quả chốt
+         * @description Chưa chốt: team mặc định, người đã check-in, điểm dự kiến. Đã chốt: điểm đã ghi trong sổ cái
+         */
+        get: operations["getFinalization"];
+        put?: never;
+        /**
+         * Chốt sự kiện
+         * @description Chỉ khi COMPLETED và chưa chốt. Mỗi người một vai trò. Không hoàn tác được
+         */
+        post: operations["finalizeEvent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments": {
         parameters: {
             query?: never;
@@ -838,6 +862,9 @@ export interface components {
             registrationClosesAt?: string;
             owner?: components["schemas"]["OwnerRef"];
             phases: components["schemas"]["PhaseResponse"][];
+            /** Format: date-time */
+            finalizedAt?: string;
+            finalizedByName?: string;
         };
         OwnerRef: {
             /** Format: int64 */
@@ -974,6 +1001,42 @@ export interface components {
             email: string;
             phone?: string;
             studentCodeOrSchool?: string;
+        };
+        FinalizeEventRequest: {
+            organizerIds: number[];
+            supporterIds: number[];
+        };
+        FinalizationResponse: {
+            /** Format: int64 */
+            eventId: number;
+            finalized: boolean;
+            /** Format: date-time */
+            finalizedAt?: string;
+            finalizedByName?: string;
+            finalizable: boolean;
+            blockedReason?: string;
+            termName?: string;
+            /** Format: int32 */
+            organizePoints: number;
+            /** Format: int32 */
+            supportPoints: number;
+            /** Format: int32 */
+            attendPoints: number;
+            organizers: components["schemas"]["Person"][];
+            supporters: components["schemas"]["Person"][];
+            attendees: components["schemas"]["Person"][];
+            /** Format: int64 */
+            guestAttendeeCount: number;
+            /** Format: int64 */
+            noShowCount: number;
+            /** Format: int64 */
+            totalPoints: number;
+        };
+        Person: {
+            /** Format: int64 */
+            memberId: number;
+            fullName: string;
+            studentCode?: string;
         };
         CheckInRequest: {
             /** Format: int64 */
@@ -1688,6 +1751,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["EventRegistrationResponse"];
+                };
+            };
+        };
+    };
+    getFinalization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalizationResponse"];
+                };
+            };
+        };
+    };
+    finalizeEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FinalizeEventRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FinalizationResponse"];
                 };
             };
         };

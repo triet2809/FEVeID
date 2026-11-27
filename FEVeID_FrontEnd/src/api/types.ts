@@ -35,3 +35,11 @@ export type PointTransactionResponse = Schemas["PointTransactionResponse"];
 export type PointTransactionType = PointTransactionResponse["type"]; // ORGANIZE | SUPPORT | ATTEND | ADJUSTMENT | ...
 export type PointAdjustmentRequest = Schemas["PointAdjustmentRequest"];
 export type TermResponse = Schemas["TermResponse"];
+
+// Team sự kiện + chốt sự kiện (Bài 13)
+export type EventStaffResponse = Schemas["EventStaffResponse"];
+export type StaffAssignmentRequest = Schemas["StaffAssignmentRequest"];
+export type StaffRole = EventStaffResponse["role"]; // ORGANIZER | SUPPORTER
+export type FinalizationResponse = Schemas["FinalizationResponse"];
+export type FinalizationPerson = FinalizationResponse["organizers"][number];
+export type FinalizeEventRequest = Schemas["FinalizeEventRequest"];

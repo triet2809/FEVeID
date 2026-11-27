@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<Event, Long> {
     // EntityGraph: lấy luôn lịch và người phụ trách trong 1 câu SELECT (JOIN),
     // tránh N+1 (mỗi sự kiện lại SELECT thêm phases/owner)
-    @EntityGraph(attributePaths = {"phases", "owner"})
+    @EntityGraph(attributePaths = {"phases", "owner", "finalizedBy"})
     List<Event> findAllByOrderByCreatedAtDesc();
 
     // Trang công khai không cần owner nên chỉ JOIN lịch
