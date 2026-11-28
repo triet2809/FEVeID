@@ -58,8 +58,8 @@ Chủ dự án là sinh viên năm 3, đây là dự án thật đầu tiên. M�
 | 10 | CRUD sự kiện + upload ảnh (10.1 tính trạng thái, 10.2 CRUD + lịch giai đoạn, 10.3a kiểm tra ảnh, 10.3b Cloudinary, 10.4 trang quản lý sự kiện) | ✅ PR #36, #37, #38, #40, #41 |
 | 11 | Trang sự kiện công khai + đăng ký (11.1 API công khai, 11.2 member đăng ký + khóa chỗ, 11.3 khách đăng ký, 11.4 danh sách đăng ký, 11.5 frontend) | ✅ PR #43, #45, #46, #47, #48 |
 | 12 | Check-in + sổ cái điểm (12.1 sổ cái, 12.2 QR xoay vòng HMAC, 12.3 check-in tay; 12.4 vé QR khách dời sau MVP; 12.5 NO_SHOW chuyển sang Bài 13) | ✅ PR #50, #51, #54, #55 |
-| 13 | Finalize sự kiện (13.1 team sự kiện, lịch kỳ cố định, 13.2–13.4 chốt sự kiện backend + giao diện) | ✅ PR #57, #58, nhánh `feat/event-finalize` |
-| 14 | Deploy (đây là mốc MVP) | |
+| 13 | Finalize sự kiện (13.1 team sự kiện, lịch kỳ cố định, 13.2–13.4 chốt sự kiện backend + giao diện) | ✅ PR #57, #58, #60 |
+| 14 | Deploy lên VPS riêng, mốc MVP (14.1 Dockerfile backend, 14.2 backend trong compose, 14.3 image frontend, 14.4 `compose.prod.yaml` + tài khoản HR đầu tiên, 14.5 chuẩn bị VPS, 14.6 deploy + HTTPS + backup) | 🚧 14.1–14.2 xong, nhánh `feat/docker-backend` |
 | 14.5 | Landing page khu công khai + hiệu ứng (Motion), theo thiết kế chủ dự án tự làm | |
 | 15–17 | Shop / Journey, Dashboard, Thông báo | |
 | 18 | VietQR | |
@@ -85,9 +85,25 @@ Ngày 27/11: xong Bài 12 (26–27/11) và Bài 13 (Claude làm trọn theo yêu
 
 ## Trạng thái hiện tại
 
-_Cập nhật: 2026-11-27 chiều (trên laptop Windows)_
+_Cập nhật: 2026-11-28 chiều (trên Mac mini)_
 
-- **Bài 13 xong về code.** Đã merge #57 (team sự kiện + sửa test dọn DB), #58 (lịch kỳ cố định). Nhánh `feat/event-finalize` (chốt sự kiện backend + giao diện) **chờ chủ dự án mở PR, đọc bản đồ luồng, trả lời câu hỏi rồi merge**. **Tiếp theo: Bài 14 – Deploy (mốc MVP).**
+- **Đang làm Bài 14 – Deploy, nhánh `feat/docker-backend`** (chưa mở PR; mở PR khi xong 14.3 hoặc trước khi deploy).
+  - ✅ 14.1 `FEVeID_BackEnd/Dockerfile`: multi-stage (JDK + `mvnw package -DskipTests` → JRE), user `feveid` không có shell (`useradd --system --no-create-home`), `ENTRYPOINT` dạng mảng với `-Duser.timezone=Asia/Ho_Chi_Minh -XX:MaxRAMPercentage=75`. `.dockerignore` loại `target/`, `.env`, `.idea/`. Đã đổi tên `DockerFile` → `Dockerfile` bằng `git mv` (Linux phân biệt hoa thường).
+  - ✅ 14.2 `compose.yaml`: thêm `healthcheck` (`pg_isready`) cho postgres + service `backend` (`build: .`, `env_file: .env`, `SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/FEVeID`, `depends_on: condition: service_healthy`, `profiles: ["app"]`). `docker compose up -d` vẫn chỉ bật Postgres như cũ; chạy cả backend: `docker compose --profile app up --build` (tắt app trong IntelliJ trước vì cùng cổng 8080). Chủ dự án đã chạy thành công.
+  - **Bước tiếp theo: 14.3 image frontend.** Cần chủ dự án chọn trước: **Caddy** (Claude đề xuất: tự xin/gia hạn HTTPS Let's Encrypt, `Caddyfile` ngắn) hay **nginx + certbot** (phổ biến hơn, nhiều bước hơn). Quyết định "frontend và `/api` chung domain" giữ nguyên, chỉ đổi công cụ.
+- **Quyết định đã chốt 28/11:** deploy MVP lên **VPS riêng** (tối thiểu 2 GB RAM, Ubuntu 24.04 LTS). Những điểm phải xử lý khi deploy:
+  - Bắt buộc có **tên miền + HTTPS**: cookie `access_token` là `Secure` (`JWT_COOKIE_SECURE` mặc định `true`) → chạy `http://IP` thì không đăng nhập được.
+  - `DevDataSeeder` chỉ chạy với profile `dev` → production không có tài khoản HR nào; cần cách tạo tài khoản đầu tiên (làm ở 14.4).
+  - Docker mở cổng vượt qua `ufw` → `compose.prod.yaml` chỉ để service web công khai mở 80/443, Postgres và backend **không** có `ports:`.
+  - Mac build ra image arm64, VPS thường là x86_64 → lúc đầu build ngay trên VPS (`git pull` + `docker compose up --build`); sau MVP mới chuyển sang GitHub Actions build image.
+  - Việc chủ dự án chuẩn bị song song: chọn nhà cung cấp VPS, hỏi CLB đã có tên miền chưa, lấy `CLOUDINARY_URL` cho production.
+- **Câu hỏi kiểm tra Bài 14 còn treo:** (1) `git mv` file vừa sửa thì `git status` hiện `R` hay `D` + `A`; (2) trong compose mà để `SPRING_DATASOURCE_URL` là `localhost:5433` thì lỗi gì; (3) lần build lại sau khi `dependency:go-offline` bị huỷ thì nhanh hay chậm hơn, vì sao.
+- **Bài học 28/11 (Mac mini):**
+  - IntelliJ mở project ở **gốc repo** (`.idea` nằm ở `FEVeID/`) và Run Configuration `FeVeIdApplication` không đặt Working directory → app chạy từ `FEVeID/`, không thấy `FEVeID_BackEnd/.env` → `Could not resolve placeholder 'JWT_SECRET'`. Sửa: Edit Configurations → Working directory = `.../FEVeID/FEVeID_BackEnd`. Lý do: `spring.config.import=optional:file:.env[.properties]` là đường dẫn **tương đối với thư mục chạy**, và `optional:` bỏ qua im lặng khi không thấy file.
+  - `docker run --env-file` và compose `env_file` đọc `.env` **nguyên văn**: `JWT_SECRET =` (có dấu cách) bị Docker từ chối, dấu cách đầu giá trị bị tính vào mật khẩu. Spring đọc kiểu `.properties` thì tự bỏ dấu cách nên trước đây không lộ lỗi. Luôn viết `TEN=giatri`.
+  - `useradd` trên Ubuntu là `--no-create-home` (có gạch giữa). Lệnh trong `RUN` lỗi mà in ra cả bảng hướng dẫn → sai tên tuỳ chọn; xem bằng `docker run --rm <image> <lệnh> --help`.
+  - YAML: thụt lề quyết định cấu trúc (`backend` thụt 4 dấu cách thành con của `postgres`); tên thuộc tính compose dùng gạch dưới (`container_name`). Kiểm tra bằng `docker compose config --quiet` trước khi chạy.
+  - Đọc stack trace: dòng `Caused by:` **cuối cùng** là nguyên nhân gốc; `Process finished with exit code 0` trong IntelliJ không có nghĩa là app chạy được.
 - **Quyết định đã chốt 27/11:**
   - Lịch kỳ cố định: Spring 01/01–30/04, Summer 01/05–31/08, Fall 01/09–31/12 (`TermSeason`). `POST /api/terms` nhận `{season, year}`, bỏ `PUT /api/terms/{id}`. `TermService.getOrCreateContaining(date)` tự tạo kỳ khi **ghi** điểm (`INSERT ... ON CONFLICT DO NOTHING`); chỗ chỉ đọc không tự tạo.
   - Điểm sự kiện vào kỳ chứa **ngày kết thúc sự kiện** (giờ VN), không phải kỳ lúc bấm chốt.
@@ -172,7 +188,7 @@ Chung:
 - Docker (Docker Desktop trên Mac, chạy được image arm64 của `postgres:17` và Testcontainers).
 - Tạo `FEVeID_BackEnd/.env` từ `.env.example` (`DB_PASSWORD`, `JWT_SECRET`). **Không commit file này.** Giá trị `DB_PASSWORD` phải khớp giữa `.env` (compose dùng) và Run Configuration của IntelliJ.
 - Postgres: `docker compose up -d` trong `FEVeID_BackEnd/`, map cổng **5433** (`application.properties` trỏ tới `localhost:5433`).
-- Run Configuration của app: env `DB_PASSWORD`, `JWT_SECRET`, và cho profile dev: `SPRING_PROFILES_ACTIVE=dev`, `DEV_HR_EMAIL`, `DEV_HR_PASSWORD`; VM option `-Duser.timezone=Asia/Ho_Chi_Minh`. Spring Boot **không tự đọc** `.env` (chỉ `docker compose` đọc); muốn dùng chung một chỗ thì bật plugin EnvFile trong Run Configuration và trỏ tới `FEVeID_BackEnd/.env`.
+- Run Configuration của app: **Working directory = thư mục `FEVeID_BackEnd`** (Spring tự đọc `.env` qua `spring.config.import=optional:file:.env[.properties]`, đường dẫn tương đối với thư mục chạy; sai thư mục thì báo thiếu `JWT_SECRET`). Profile dev: `SPRING_PROFILES_ACTIVE=dev` + `DEV_HR_EMAIL`, `DEV_HR_PASSWORD`; VM option `-Duser.timezone=Asia/Ho_Chi_Minh`. `.env` viết dạng `TEN=giatri`, không có dấu cách quanh `=` (Docker đọc nguyên văn).
 - Test: `./mvnw test` (Testcontainers tự bật Postgres; cần Docker đang chạy).
 - Frontend: Node **24** + npm. Trong `FEVeID_FrontEnd/`: `npm install` (lần đầu), `npm run dev` → http://localhost:5173 (cần backend ở 8080). Không chạy npm ở gốc repo.
 
@@ -190,6 +206,6 @@ Riêng laptop Windows:
 Riêng Mac mini:
 - Có sẵn `openssl` để tạo `JWT_SECRET`: `openssl rand -base64 48`.
 - Nếu `./mvnw` báo không có quyền chạy: `chmod +x mvnw` (file đã có mode 100755 trong git).
-- Đã setup: Temurin 25 (arm64, là `java` mặc định), Docker Desktop, `.env`, container `feveid-postgres` (volume `feveid_backend_feveid-pgdata`), Sourcetree, `gh` (đã đăng nhập, protocol https). **Chưa kiểm tra Node** (frontend cần v24: `node -v`).
+- Đã setup: Temurin 25 (arm64, là `java` mặc định), Docker Desktop, `.env` (đã bỏ dấu cách quanh `=` ngày 28/11; chưa có `CLOUDINARY_URL`), container `feveid-postgres` (volume `feveid_backend_feveid-pgdata`, đã chạy đủ migration V1–V14), image `feveid-backend`, Sourcetree, `gh` (đã đăng nhập, protocol https). IntelliJ đã cần đặt Working directory (xem phần Chung). **Chưa kiểm tra Node** (frontend cần v24: `node -v`).
 - Repo ở `/Users/mac/FEVeID/FEVeID`. `./mvnw` và `docker compose` phải chạy trong `FEVeID_BackEnd/`; lệnh git chạy ở đâu trong repo cũng được.
 - Máy **không có SSH key** → remote `origin` phải dùng HTTPS (`https://github.com/triet2809/FEVeID.git`). Nếu Sourcetree/git báo `Permission denied (publickey)` thì remote đang là `ssh://...`: đổi lại sang HTTPS.
