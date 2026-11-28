@@ -10,5 +10,23 @@ services:
       - "5433:5432"
     volumes:
       - feveid-pgdata:/var/lib/postgresql/data      # là thư mục mà Postgres 17 dùng để lưu dữ liệu.Nếu sau này đổi sang 18 thì đường dẫn sẽ khác
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d FEVeID" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+      build: . # Đọc file Dockerfile trong thư mục này (nhớ đổi tên DockerFile thành Dockerfile trước)
+      container_name: feveid-backend
+      profiles: [ "app" ] # 'docker compose up -' chỉ bật postgres như cũ; muốn bật cả backend thì thêm --pro app
+      env_file: .env
+      environment: # "postgres" = tên service ở trong; 5432 = cổng BÊN TRONG container postegres
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/FEVeID
+      depends_on:
+            postgres:
+              condition: service_healthy   # chờ pg_isready báo OK rồi mới chạy backend
+      ports:
+            - "8080:8080"
 volumes:
   feveid-pgdata:
